@@ -12,6 +12,7 @@ const navItems = [
   { name: "Services", href: "/services", icon: Briefcase },
   { name: "Publications", href: "/publications", icon: BookOpen },
   { name: "Team", href: "/team", icon: Users },
+  { name: "Spport", href: "/donate", icon: Users },
 
 ];
 

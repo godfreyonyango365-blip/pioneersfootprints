@@ -97,8 +97,8 @@ export default function Footer() {
                 { name: "Advent AI", url: "https://adventai.app/" },
                 { name: "Advent Nurutech", url: "https://www.adventnurutech.xyz/" },
                 { name: "Nuru Shop", url: "https://nurushop.co.ke/" },
-                { name: " Remsam Homestade", url: "https://https://remsamhomestead.com//" },
-                 { name: " Gospel Sounders Ministry", url: "https://www.gspublicationsandmissions.org//" },
+                { name: " Remsam Homestade", url: "https://https://remsamhomestead.com/" },
+                 { name: " Gospel Sounders Ministry", url: "https://www.gspublicationsandmissions.org/" },
               ].map((site, index) => (
                 <a key={index} href={site.url} target="_blank" rel="noopener noreferrer" className="block p-4 rounded-xl bg-gray-800/40 hover:bg-blue-600/20 border border-gray-700 hover:border-blue-500 transition-all duration-300 group">
                   <div className="flex items-center gap-3">

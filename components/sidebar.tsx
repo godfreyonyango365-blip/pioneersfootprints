@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { X, Briefcase, BookOpen, House, Users } from "@/components/icon";
+import { X, Briefcase, BookOpen, House, Users, } from "@/components/icon";
 import { motion, AnimatePresence } from "framer-motion";
 
 const sidebarItems = [
@@ -11,6 +11,7 @@ const sidebarItems = [
   { name: "Services", href: "/services", icon: Briefcase },
   { name: "Publications", href: "/publications", icon: BookOpen },
   { name: "Team", href: "/team", icon: Users },
+   { name: "Sopport", href: "/donate", icon: Users },
 ];
 
 interface SidebarProps {

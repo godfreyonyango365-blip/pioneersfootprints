@@ -110,11 +110,12 @@ export default function Hero() {
             </Link>
 
             <Link
-              href="/publications"
+              href="/donate"
               className="rounded-xl border-2 border-blue-300 px-8 py-4 text-white transition hover:bg-white/10"
             >
-              View Resources
+              Support
             </Link>
+
 
             <Link
               href="/team"
