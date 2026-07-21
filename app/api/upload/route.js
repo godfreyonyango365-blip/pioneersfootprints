@@ -55,12 +55,18 @@ function uploadBuffer(buffer, options = {}) {
 export async function POST(req) {
   try {
     if (
-      !cloudinaryCloudName ||
-      !process.env.CLOUDINARY_API_KEY ||
-      !(process.env._API_SECRET || process.env.CLOUDINARY_SECRET)
-    ) {
-      return jsonError("Cloudinary server credentials are not configured", 500);
-    }
+  !cloudinaryCloudName ||
+  !process.env.CLOUDINARY_API_KEY ||
+  !(
+    process.env.CLOUDINARY_API_SECRET ||
+    process.env.CLOUDINARY_SECRET
+  )
+) {
+  return jsonError(
+    "Cloudinary server credentials are not configured",
+    500
+  );
+}
 
     const formData = await req.formData();
     const file = formData.get("file");
