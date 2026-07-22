@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/footer";
 
 export default function DonatePage() {
-  const mpesaNumber = "0742767609";
+  const mpesaNumber = "+254742767609";
   const paybill = "400200";
   const account = "01102953561001";
 
@@ -65,6 +65,7 @@ export default function DonatePage() {
 
                 <h3 className="text-2xl font-bold text-green-700 dark:text-green-300">
                   {mpesaNumber}
+          
                 </h3>
               </div>
 
@@ -164,12 +165,12 @@ export default function DonatePage() {
               <div className="rounded-xl border dark:border-gray-700 p-6">
                 <div className="text-4xl mb-3">📚</div>
                 <h3 className="font-bold text-xl mb-2">
-                  Publications
+                  Medical Missionary Work
                 </h3>
 
                 <p className="text-gray-600 dark:text-gray-400">
-                  Publishing Adventist pioneer writings,
-                  Bible study guides and educational materials.
+                   Providing practical health education, natural remedies, community outreach,
+  lifestyle training and Christ-centered medical missionary services
                 </p>
               </div>
 
