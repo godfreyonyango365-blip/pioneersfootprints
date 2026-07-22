@@ -1,9 +1,11 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useState } from "react";
-import { db } from "@/lib/firebase";
+import { useEffect, useState } from "react";
+import { db, auth } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import type { User } from "firebase/auth";
 
 interface CloudinaryUploadResponse {
   secure_url: string;
@@ -13,6 +15,10 @@ interface CloudinaryUploadResponse {
 }
 
 export default function UploadPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -24,6 +30,20 @@ export default function UploadPage() {
 
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  // Check authentication
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser: User | null) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        router.push("/np-godfrey123/login");
+      }
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const uploadToCloudinary = async (uploadFile: File) => {
     const formData = new FormData();
@@ -58,20 +78,33 @@ export default function UploadPage() {
       setLoading(true);
       setProgress(0);
 
+      console.log("Starting Cloudinary upload...");
       const fileRes = await uploadToCloudinary(file);
+      console.log("Cloudinary upload successful:", fileRes);
       setProgress(50);
 
       let thumbUrl = "";
       let thumbPublicId = "";
 
       if (thumbnail) {
+        console.log("Uploading thumbnail...");
         const thumbRes = await uploadToCloudinary(thumbnail);
         thumbUrl = thumbRes.secure_url;
         thumbPublicId = thumbRes.public_id;
+        console.log("Thumbnail upload successful:", thumbRes);
       }
-      setProgress(100);
+      setProgress(75);
 
-      await addDoc(collection(db, "publications"), {
+      console.log("Saving to Firestore...", {
+        name,
+        description,
+        fileUrl: fileRes.secure_url,
+        filePublicId: fileRes.public_id,
+        thumbnailUrl: thumbUrl,
+        thumbnailPublicId: thumbPublicId,
+      });
+
+      const docRef = await addDoc(collection(db, "publications"), {
         name,
         description,
         fileUrl: fileRes.secure_url,
@@ -81,7 +114,10 @@ export default function UploadPage() {
         createdAt: serverTimestamp(),
       });
 
-      alert("Upload successful!");
+      console.log("Document saved to Firestore with ID:", docRef.id);
+      setProgress(100);
+
+      alert("Upload successful! Publication added to library.");
 
       setName("");
       setDescription("");
@@ -91,14 +127,15 @@ export default function UploadPage() {
       setThumbPreview(null);
       setProgress(0);
     } catch (err: unknown) {
-      console.error(err);
+      console.error("Upload error:", err);
       const message =
         err instanceof Error
           ? err.message
           : typeof err === "object" && err !== null && "message" in err
             ? String(err.message)
             : "Upload failed";
-      alert(message);
+      console.error("Error details:", message);
+      alert(`Upload failed: ${message}`);
     } finally {
       setLoading(false);
     }
@@ -106,7 +143,14 @@ export default function UploadPage() {
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-10">
-      <div className="mx-auto max-w-2xl rounded-2xl bg-white p-6 shadow-lg space-y-6">
+      {authLoading ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <p className="text-slate-600">Checking authentication...</p>
+          </div>
+        </div>
+      ) : (
+        <div className="mx-auto max-w-2xl rounded-2xl bg-white p-6 shadow-lg space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">
             Upload Publication
@@ -207,7 +251,8 @@ export default function UploadPage() {
         >
           {loading ? "Uploading..." : "Upload Publication"}
         </button>
-      </div>
+        </div>
+      )}
     </main>
   );
 }
