@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { BookOpen, Search, Inbox } from "lucide-react";
+import Header from "@/components/Navbar";
+import Footer from "@/components/footer";
 
 interface Publication {
   id: string;

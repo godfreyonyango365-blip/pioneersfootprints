@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { BookOpen, Search, Inbox } from "@/components/icon";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/footer";
 
 interface Publication {
   id: string;
@@ -87,7 +89,9 @@ export default function PublicationsPage() {
   }, [search, publications]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 py-10 px-4">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 py-10 px-4">
       <div className="max-w-6xl mx-auto">
 
         {/* HEADER */}
@@ -242,6 +246,8 @@ export default function PublicationsPage() {
         )}
 
       </div>
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }
