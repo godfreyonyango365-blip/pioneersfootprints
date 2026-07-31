@@ -91,14 +91,17 @@ export default function Footer() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 max-w-5xl">
               {[
                 { name: "EGW Writings", url: "https://egwwritings.org/" },
-                { name: "Sunday Law", url: "https://SundayLaw.com/" },
-                  { name: "Old SDA Organization", url: "https://oldsda.org/" },
-                { name: "Young Evangelists Ministry", url: "https://youngevangelists.vercel.app/" },
                 { name: "Advent AI", url: "https://adventai.app/" },
                 { name: "Advent Nurutech", url: "https://www.adventnurutech.xyz/" },
                 { name: "Nuru Shop", url: "https://nurushop.co.ke/" },
+                  { name: "Old SDA Organization", url: "https://oldsda.org/" },
+                { name: "Sunday Law", url: "https://SundayLaw.com/" },
                 { name: " RemSam Homestead", url: "https://remsamhomestead.com//" },
                  { name: " Gospel Sounders Ministry", url: "https://www.gspublicationsandmissions.org/" },
+                 { name: " Last Call Publishing", url: "https://lastcallpublishing.online/" },
+
+
+
               ].map((site, index) => (
                 <a key={index} href={site.url} target="_blank" rel="noopener noreferrer" className="block p-4 rounded-xl bg-gray-800/40 hover:bg-blue-600/20 border border-gray-700 hover:border-blue-500 transition-all duration-300 group">
                   <div className="flex items-center gap-3">
