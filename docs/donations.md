@@ -4,6 +4,8 @@ The application uses Next.js Node route handlers, Firebase Auth, Firestore Admin
 
 ## Required server environment
 
+The deployed Vercel project must use Node.js 22 or newer because Firebase Admin 14 requires Node 22+. This repository enforces that minimum through `package.json`. Redeploy after changing the runtime or any environment variable.
+
 - `SITE_URL`: exact trusted canonical origin, e.g. the HTTPS origin configured for this website. Never derive it from a request Host header. HTTPS is required in production.
 - `PAYSTACK_SECRET_KEY`: merchant test key for staging or live key for production. KES must be enabled on that account.
 - `DONATION_QUOTE_SIGNING_SECRET`: independent cryptographically random secret of at least 32 bytes recommended. Without it, a domain-separated HMAC key is derived from the Paystack key using the site ID and versioned context. Rotating either key invalidates outstanding quotes.
@@ -12,6 +14,8 @@ The application uses Next.js Node route handlers, Firebase Auth, Firestore Admin
 - `DONATION_TRUSTED_IP_HEADER`: optional header set and overwritten by your trusted reverse proxy. Only set this after checking your host documentation; otherwise request limits use a conservative shared bucket. The durable per-minute limits are quote=60, initialize=10, verification=20, admin reconciliation=30. Configure additional edge abuse protection for a high-traffic deployment.
 
 Never add a NEXT_PUBLIC prefix to these variables. Never commit .env.local or service-account files. Browser Firebase configuration is separate and remains public by design.
+
+`.env.local` affects local development only and is intentionally excluded from Git. Add the server variables separately in Vercel Project Settings for Production, Preview and Development as needed. Paste the Firebase private key as the complete PEM value, including its BEGIN/END lines; Vercel supports multiline values. Do not add an unmatched quote to the project ID. The Paystack public key is not used by this hosted-checkout implementation.
 
 ## Firestore security and maintenance
 

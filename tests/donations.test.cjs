@@ -171,3 +171,15 @@ test('initialization persists before calling gateway and stores sanitized failur
     assert.equal(record.status,'failed');assert.equal(record.reason.includes('private'),false);
   } finally {global.fetch=original;if(oldSite===undefined)delete process.env.SITE_URL;else process.env.SITE_URL=oldSite;}
 });
+
+test('client response parsing hides HTML infrastructure errors',async()=> {
+  const client = loader()('lib/donations/client.ts');
+  await assert.rejects(
+    ()=>client.readDonationResponse(new Response('<!DOCTYPE html>',{status:500,headers:{'Content-Type':'text/html'}}),'Service unavailable.'),
+    error=>error.message==='Service unavailable.',
+  );
+  await assert.rejects(
+    ()=>client.readDonationResponse(Response.json({error:'Safe message'},{status:503}),'Fallback.'),
+    error=>error.message==='Safe message',
+  );
+});

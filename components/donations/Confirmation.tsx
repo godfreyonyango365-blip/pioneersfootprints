@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatDonationAmount } from '@/lib/donations/config';
+import { readDonationResponse } from '@/lib/donations/client';
 export default function Confirmation({reference}:{reference:string}) {
   const [result,setResult] = useState<{status:string;amountSubunit:number;reason:string}|null>(null);
   const [error,setError] = useState('');
@@ -9,7 +10,7 @@ export default function Confirmation({reference}:{reference:string}) {
   const [busy,setBusy] = useState(true);
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/paystack/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reference}),signal:controller.signal}).then(async response => {const data = await response.json();if (!response.ok) throw new Error(data.error || 'Payment could not yet be confirmed.');if (!controller.signal.aborted) setResult(data);}).catch(err => {if (!controller.signal.aborted) setError(err.message);}).finally(() => {if (!controller.signal.aborted) setBusy(false);});
+    fetch('/api/paystack/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reference}),signal:controller.signal}).then(response => readDonationResponse<{status:string;amountSubunit:number;reason:string}>(response,'Payment could not yet be confirmed.')).then(data => {if (!controller.signal.aborted) setResult(data);}).catch(err => {if (!controller.signal.aborted) setError(err.message);}).finally(() => {if (!controller.signal.aborted) setBusy(false);});
     return () => controller.abort();
   },[reference,attempt]);
   const success = result?.status === 'success';

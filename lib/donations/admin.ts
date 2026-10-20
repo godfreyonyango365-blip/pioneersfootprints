@@ -4,14 +4,38 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { donationConfig } from "./config";
 
+function adminEnvironment() {
+  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID?.trim().replace(/^["']|["']$/g, "");
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim().replace(/^["']|["']$/g, "");
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n").trim();
+
+  if (!projectId || !/^[a-z0-9][a-z0-9-]{4,28}[a-z0-9]$/.test(projectId)) {
+    throw new HttpError(503, "Donation storage is not configured correctly.");
+  }
+
+  if (privateKey) {
+    if (!clientEmail || !/^[^\s@]+@[^\s@]+\.iam\.gserviceaccount\.com$/.test(clientEmail) ||
+        !privateKey.startsWith("-----BEGIN PRIVATE KEY-----") ||
+        !privateKey.endsWith("-----END PRIVATE KEY-----")) {
+      throw new HttpError(503, "Donation storage is not configured correctly.");
+    }
+  }
+
+  return { projectId, clientEmail, privateKey };
+}
+
 function adminApp() {
-  return getApps().find(a => a.name === "donations") ?? initializeApp({
-    credential: process.env.FIREBASE_ADMIN_PRIVATE_KEY ? cert({
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, "\n"),
+  const existing = getApps().find(a => a.name === "donations");
+  if (existing) return existing;
+
+  const environment = adminEnvironment();
+  return initializeApp({
+    credential: environment.privateKey ? cert({
+      projectId: environment.projectId,
+      clientEmail: environment.clientEmail,
+      privateKey: environment.privateKey,
     }) : applicationDefault(),
-    projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+    projectId: environment.projectId,
   }, "donations");
 }
 export const donationDb = () => getFirestore(adminApp());

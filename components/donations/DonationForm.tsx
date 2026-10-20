@@ -1,6 +1,7 @@
 ﻿'use client';
 import { useEffect, useRef, useState } from 'react';
 import { donationConfig as config, DonationCurrency, formatDonationAmount, parseDonationAmount } from '@/lib/donations/config';
+import { readDonationResponse } from '@/lib/donations/client';
 type Quote = {token:string;inputCurrency:DonationCurrency;inputAmountSubunit:number;chargeAmountSubunit:number;exchangeRate:string|null;exchangeRateDate:string|null;exchangeRateProvider:string|null;expiresAt:string};
 export default function DonationForm() {
   const [amount,setAmount] = useState('1000.00');
@@ -22,8 +23,7 @@ export default function DonationForm() {
       try {
         parseDonationAmount(amount,currency);
         const response = await fetch('/api/donations/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount,currency}),signal:controller.signal});
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Unable to calculate your donation.');
+        const data = await readDonationResponse<Quote>(response,'The donation service is temporarily unavailable. Please try again shortly.');
         if (controller.signal.aborted || generation.current !== id) return;
         if (data.inputCurrency !== currency || data.inputAmountSubunit !== parseDonationAmount(amount,currency) || !Number.isSafeInteger(data.chargeAmountSubunit) || Date.parse(data.expiresAt) <= Date.now()+30000) throw new Error('Please request a fresh quote.');
         setQuote(data); setQuoteKey(key);
@@ -39,8 +39,7 @@ export default function DonationForm() {
     const form = new FormData(event.currentTarget);
     try {
       const response = await fetch('/api/paystack/initialize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount,currency,quoteToken:quote.token,email:form.get('email'),donorName:form.get('donorName'),purpose:form.get('purpose')}),signal:AbortSignal.timeout(20000)});
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Unable to start checkout.');
+      const data = await readDonationResponse<{authorizationUrl:string;reference:string}>(response,'Unable to start checkout. Please try again shortly.');
       const url = new URL(data.authorizationUrl);
       if (url.protocol !== 'https:' || url.hostname !== config.checkoutHost || url.username || url.password || url.port) throw new Error('Invalid checkout address.');
       window.location.assign(url.href);
