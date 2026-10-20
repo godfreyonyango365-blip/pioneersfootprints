@@ -101,7 +101,6 @@ export default function Footer() {
                  { name: " Last Call Publishing", url: "https://lastcallpublishing.online/" },
 
 
-
               ].map((site, index) => (
                 <a key={index} href={site.url} target="_blank" rel="noopener noreferrer" className="block p-4 rounded-xl bg-gray-800/40 hover:bg-blue-600/20 border border-gray-700 hover:border-blue-500 transition-all duration-300 group">
                   <div className="flex items-center gap-3">
