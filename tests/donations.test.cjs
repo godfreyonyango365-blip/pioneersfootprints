@@ -39,6 +39,8 @@ test('money rejects malformed amounts and enforces exact boundaries',() => {
   assert.throws(()=>money.parseDonationAmount('100000.01','USD'));
   assert.equal(money.donationSubunitToMajor(101),'1.01');
   assert.equal(money.isDonationPurpose('__proto__'),false);
+  assert.equal(money.isDonationPurpose('Support health education'),true);
+  assert.equal(money.isDonationPurpose('x'.repeat(121)),false);
 });
 test('KES quotes never call an FX service and bind input and expiration',async () => {
   const q = await quotes.createQuote('10','KES');
@@ -159,15 +161,17 @@ test('initialization persists original USD details and sends only KES to Paystac
   const original = global.fetch, oldSite = process.env.SITE_URL;
   process.env.SITE_URL='https://www.pioneersfootprints.com';
   const quote = quotes.signQuote({v:1,inputCurrency:'USD',inputAmountSubunit:1000,chargeCurrency:'KES',chargeAmountSubunit:129250,exchangeRate:'129.25',exchangeRateDate:new Date().toISOString().slice(0,10),expiresAt:Math.floor(Date.now()/1000)+900});
-  const input = {amount:'10',currency:'USD',quoteToken:quote,email:'donor@example.test',donorName:'',purpose:'general'};
+  const input = {amount:'10',currency:'USD',quoteToken:quote,email:'donor@example.test',donorName:'',purpose:'Support health education'};
   try {
     global.fetch=async(_url,options)=>{
       assert.equal(record.status,'pending');
       const body=JSON.parse(options.body);
       assert.equal(record.currency,'KES');assert.equal(record.amountSubunit,129250);
       assert.equal(record.donorInputCurrency,'USD');assert.equal(record.donorInputAmountSubunit,1000);assert.equal(record.exchangeRate,'129.25');
+      assert.equal(record.purpose,'Support health education');
       assert.equal(body.amount,'129250');assert.equal(body.currency,'KES');assert.equal(body.reference,record.reference);
       assert.equal(body.metadata.donor_input_currency,'USD');assert.equal(body.metadata.donor_input_amount_subunit,1000);assert.equal(body.metadata.usd_to_kes_rate,'129.25');
+      assert.equal(body.metadata.donation_purpose,'Support health education');
       return Response.json({status:true,data:{reference:body.reference,authorization_url:'https://checkout.paystack.com/test'}});
     };
     assert.match((await payments.initializeDonation(input)).authorizationUrl,/^https:/);

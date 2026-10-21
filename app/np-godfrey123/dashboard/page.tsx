@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Library,
   Images,
+  HeartHandshake,
   Globe,
   LayoutDashboard,
 } from "lucide-react";
@@ -49,6 +50,14 @@ const statistics = [
 ];
 
 const actions = [
+  {
+    title: "Manage Donations",
+    description:
+      "Review verified totals, payment statuses and reconcile Paystack references.",
+    href: `${BASE}/donations`,
+    icon: HeartHandshake,
+    color: "bg-emerald-700",
+  },
  { title: "Manage Press Books", description: "Add book covers, prices and descriptions to the press catalogue.", href: BASE + "/press", icon: BookOpen, color: "bg-blue-900" },
   {
     title: "Upload Publication",

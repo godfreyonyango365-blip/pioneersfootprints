@@ -1,7 +1,8 @@
 ﻿'use client';
 import { useEffect, useRef, useState } from 'react';
-import { CreditCard, LockKeyhole } from 'lucide-react';
-import { FaApple, FaGoogle } from 'react-icons/fa';
+import { LockKeyhole } from 'lucide-react';
+import { FaApple } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import { donationConfig as config, DonationCurrency, formatDonationAmount, parseDonationAmount } from '@/lib/donations/config';
 import { readDonationResponse } from '@/lib/donations/client';
 type Quote = {token:string;inputCurrency:DonationCurrency;inputAmountSubunit:number;chargeCurrency:'KES';chargeAmountSubunit:number;exchangeRate:string|null;exchangeRateDate:string|null;exchangeRateProvider:string|null;expiresAt:string};
@@ -61,7 +62,7 @@ export default function DonationForm() {
     <fieldset disabled={busy} className="space-y-5">
       <label className="block font-medium">Your name (optional)<input name="donorName" maxLength={100} autoComplete="name" placeholder="Type your name" className={field}/></label>
       <label className="block font-medium">Receipt email<input name="email" type="email" required maxLength={254} autoComplete="email" className={field}/></label>
-      <label className="block font-medium">Donation purpose<select name="purpose" defaultValue={config.defaultPurpose} className={field}>{Object.entries(config.purposes).map(([id,label]) => <option key={id} value={id}>{label}</option>)}</select></label>
+      <label className="block font-medium">Donation purpose (optional)<input name="purpose" maxLength={120} placeholder="Where it is needed most" className={field}/></label>
     </fieldset>
     <div aria-live="polite" className="min-w-0 rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-950">
       {ready ? <><p>Your donation: <strong>{formatDonationAmount(quote.inputAmountSubunit,currency)}</strong></p><p>Paystack will charge <strong>{formatDonationAmount(quote.chargeAmountSubunit,quote.chargeCurrency)}</strong>.</p>{currency === 'USD' && <><p>1 USD = {quote.exchangeRate} KES · {quote.exchangeRateProvider} · {quote.exchangeRateDate}</p><p>Your card issuer or payment provider may apply additional conversion fees.</p></>}</> : <p>{quoteError || (amount ? 'Calculating your secure quote…' : 'Enter a custom donation amount to receive a secure KES quote.')}</p>}
@@ -71,9 +72,9 @@ export default function DonationForm() {
     <button disabled={!ready || busy} className="w-full rounded-xl bg-blue-800 px-4 py-4 font-semibold text-white hover:bg-blue-900 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 disabled:cursor-not-allowed disabled:opacity-50">{busy ? 'Opening secure checkout…' : 'Continue to Paystack'}</button>
     <div className="border-t border-slate-200 pt-6">
       <div className="flex flex-wrap justify-center gap-3" aria-label="Supported payment methods">
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 font-semibold"><CreditCard aria-hidden="true" className="size-5 text-blue-700"/>Card</div>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 font-semibold"><span aria-hidden="true" className="relative h-5 w-7 rounded-sm bg-blue-700"><span className="absolute bottom-1 left-1.5 size-2.5 rounded-full bg-red-500"/><span className="absolute bottom-1 right-1.5 size-2.5 rounded-full bg-amber-400/90"/></span>Card</div>
         <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 font-semibold"><FaApple aria-hidden="true" className="size-5"/>Apple Pay</div>
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 font-semibold"><FaGoogle aria-hidden="true" className="size-4 text-blue-600"/>Google Pay</div>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 font-semibold"><FcGoogle aria-hidden="true" className="size-5"/>G Pay</div>
       </div>
       <div className="mt-6 flex gap-3 border-t border-slate-200 pt-6 text-sm leading-6 text-slate-600">
         <LockKeyhole aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-slate-500"/>

@@ -25,15 +25,18 @@ export async function initializeDonation(body: Record<string,unknown>) {
   const quote = verifyQuote(body.quoteToken,body.amount,body.currency);
   if (typeof body.email !== 'string' || body.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) throw new HttpError(400,'Enter a valid receipt email.');
   if (body.donorName !== undefined && (typeof body.donorName !== 'string' || body.donorName.length > 100 || /[\x00-\x1f\x7f]/.test(body.donorName))) throw new HttpError(400,'Enter a name of up to 100 characters.');
-  if (!isDonationPurpose(body.purpose)) throw new HttpError(400,'Choose a valid donation purpose.');
+  const purposeInput = typeof body.purpose === 'string' ? body.purpose.trim() : '';
+  if (purposeInput && !isDonationPurpose(purposeInput)) throw new HttpError(400,'Enter a donation purpose of up to 120 characters.');
   const callback = new URL('/donate/confirmation',siteUrl()).href;
   const reference = config.referencePrefix + randomBytes(16).toString('hex');
   const ref = donationDb().collection('donations').doc(reference);
   const name = typeof body.donorName === 'string' ? body.donorName.trim() : '';
-  const record = {reference,siteId:config.siteId,source:config.source,donorEmail:body.email.trim().toLowerCase(),donorName:name || 'Anonymous',purpose:config.purposes[body.purpose],purposeId:body.purpose,currency:quote.chargeCurrency,amountSubunit:quote.chargeAmountSubunit,donorInputCurrency:quote.inputCurrency,donorInputAmountSubunit:quote.inputAmountSubunit,exchangeRate:quote.exchangeRate,exchangeRateDate:quote.exchangeRateDate,exchangeRateProvider:quote.exchangeRate ? config.rateProvider:null,status:'pending',reason:'Awaiting payment completion.',initializedAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()};
+  const purposeId = purposeInput || config.defaultPurpose;
+  const purpose = Object.hasOwn(config.purposes,purposeId) ? config.purposes[purposeId as keyof typeof config.purposes] : purposeId;
+  const record = {reference,siteId:config.siteId,source:config.source,donorEmail:body.email.trim().toLowerCase(),donorName:name || 'Anonymous',purpose,purposeId,currency:quote.chargeCurrency,amountSubunit:quote.chargeAmountSubunit,donorInputCurrency:quote.inputCurrency,donorInputAmountSubunit:quote.inputAmountSubunit,exchangeRate:quote.exchangeRate,exchangeRateDate:quote.exchangeRateDate,exchangeRateProvider:quote.exchangeRate ? config.rateProvider:null,status:'pending',reason:'Awaiting payment completion.',initializedAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()};
   await ref.create(record);
   try {
-    const data = await gateway('/transaction/initialize',{amount:String(record.amountSubunit),currency:config.chargeCurrency,email:record.donorEmail,reference,callback_url:callback,metadata:{donation:true,source:config.source,donor_name:name,donation_purpose:body.purpose,donation_currency:config.chargeCurrency,donation_amount_major:donationSubunitToMajor(record.amountSubunit),donation_amount_subunit:record.amountSubunit,donor_input_currency:quote.inputCurrency,donor_input_amount_major:donationSubunitToMajor(quote.inputAmountSubunit),donor_input_amount_subunit:quote.inputAmountSubunit,usd_to_kes_rate:quote.exchangeRate,exchange_rate_date:quote.exchangeRateDate,exchange_rate_provider:record.exchangeRateProvider,custom_fields:[]}});
+    const data = await gateway('/transaction/initialize',{amount:String(record.amountSubunit),currency:config.chargeCurrency,email:record.donorEmail,reference,callback_url:callback,metadata:{donation:true,source:config.source,donor_name:name,donation_purpose:purpose,donation_currency:config.chargeCurrency,donation_amount_major:donationSubunitToMajor(record.amountSubunit),donation_amount_subunit:record.amountSubunit,donor_input_currency:quote.inputCurrency,donor_input_amount_major:donationSubunitToMajor(quote.inputAmountSubunit),donor_input_amount_subunit:quote.inputAmountSubunit,usd_to_kes_rate:quote.exchangeRate,exchange_rate_date:quote.exchangeRateDate,exchange_rate_provider:record.exchangeRateProvider,custom_fields:[]}});
     if (data.reference !== reference || !validCheckout(data.authorization_url)) throw new HttpError(502,'The payment provider returned an invalid checkout.');
     return {authorizationUrl:data.authorization_url as string,reference};
   } catch {

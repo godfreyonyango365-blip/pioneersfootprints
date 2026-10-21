@@ -42,7 +42,7 @@ Test in Paystack test mode: KES donation, USD conversion, callback verification,
 
 The USD provider is CBK through Frankfurter. Rates are cached in each warm server instance for one hour, validated for date and currencies, and rejected after seven days. Cold instances fetch fresh data. Quote signatures last 15 minutes; the form refreshes 30 seconds early. Amount arithmetic uses integer subunits and BigInt decimal-rate rounding.
 
-Visit `/np-godfrey123/dashboard/donations` for paginated records, successful total and reference reconciliation. Reconcile pending or initialization-failed records after provider outages or missing callbacks. This release provides administrator-triggered reconciliation rather than a scheduled job; use a host-specific authenticated scheduler only after choosing its identity and operational policy.
+Visit `/np-godfrey123/dashboard/donations` for server-aggregated status counts and verified totals, newest-first paginated records, page-level search and filtering, and reference reconciliation. The dashboard has separate desktop and mobile record layouts. Reconcile pending or initialization-failed records after provider outages or missing callbacks. This release provides administrator-triggered reconciliation rather than a scheduled job; use a host-specific authenticated scheduler only after choosing its identity and operational policy.
 
 Receipt delivery is delegated to the merchant's Paystack receipt settings and is not guaranteed by the website. No separate email service is configured. Configure and test merchant receipt delivery before promising email receipts. Update the centralized privacy text with your retention/contact policy before launch; set a documented retention period for donor records.
 

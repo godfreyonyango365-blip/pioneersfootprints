@@ -22,8 +22,8 @@ export type DonationCurrency = keyof typeof donationConfig.currencies;
 export function isDonationCurrency(value: unknown): value is DonationCurrency {
   return value === "KES" || value === "USD";
 }
-export function isDonationPurpose(value: unknown): value is keyof typeof donationConfig.purposes {
-  return typeof value === "string" && Object.hasOwn(donationConfig.purposes, value);
+export function isDonationPurpose(value: unknown): value is string {
+  return typeof value === "string" && value.length <= 120 && value === value.trim() && /^[\p{L}\p{N}][\p{L}\p{N}\s.,&'()/-]*$/u.test(value);
 }
 export function parseDonationAmount(value: unknown, currency: DonationCurrency): number {
   if (typeof value !== "string" || !/^\d{1,8}(\.\d{1,2})?$/.test(value)) throw new Error("Enter a valid amount with up to two decimal places.");
