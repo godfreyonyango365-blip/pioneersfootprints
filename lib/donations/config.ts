@@ -11,7 +11,7 @@ export const donationConfig = {
     USD: { symbol: "$", min: 100, max: 10000000 },
   },
   rateUrl: "https://api.frankfurter.dev/v2/rate/usd/kes?providers=cbk",
-  rateProvider: "Central Bank of Kenya via Frankfurter",
+  rateProvider: "CBK",
   gateway: "https://api.paystack.co",
   checkoutHost: "checkout.paystack.com",
   adminRoles: ["admin", "owner", "super_admin", "super-admin"],

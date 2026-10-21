@@ -1,5 +1,7 @@
 ﻿'use client';
 import { useEffect, useRef, useState } from 'react';
+import { CreditCard, LockKeyhole } from 'lucide-react';
+import { FaApple, FaGoogle } from 'react-icons/fa';
 import { donationConfig as config, DonationCurrency, formatDonationAmount, parseDonationAmount } from '@/lib/donations/config';
 import { readDonationResponse } from '@/lib/donations/client';
 type Quote = {token:string;inputCurrency:DonationCurrency;inputAmountSubunit:number;chargeCurrency:'KES';chargeAmountSubunit:number;exchangeRate:string|null;exchangeRateDate:string|null;exchangeRateProvider:string|null;expiresAt:string};
@@ -57,7 +59,7 @@ export default function DonationForm() {
     </fieldset>
     <p id="amount-limits" className="text-sm text-slate-600">{formatDonationAmount(config.currencies[currency].min,currency)} – {formatDonationAmount(config.currencies[currency].max,currency)}</p>
     <fieldset disabled={busy} className="space-y-5">
-      <label className="block font-medium">Your name (optional)<input name="donorName" maxLength={100} autoComplete="name" className={field}/></label>
+      <label className="block font-medium">Your name (optional)<input name="donorName" maxLength={100} autoComplete="name" placeholder="Type your name" className={field}/></label>
       <label className="block font-medium">Receipt email<input name="email" type="email" required maxLength={254} autoComplete="email" className={field}/></label>
       <label className="block font-medium">Donation purpose<select name="purpose" defaultValue={config.defaultPurpose} className={field}>{Object.entries(config.purposes).map(([id,label]) => <option key={id} value={id}>{label}</option>)}</select></label>
     </fieldset>
@@ -67,8 +69,18 @@ export default function DonationForm() {
     </div>
     {error && <p role="alert" className="break-words text-red-700">{error}</p>}
     <button disabled={!ready || busy} className="w-full rounded-xl bg-blue-800 px-4 py-4 font-semibold text-white hover:bg-blue-900 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 disabled:cursor-not-allowed disabled:opacity-50">{busy ? 'Opening secure checkout…' : 'Continue to Paystack'}</button>
-    <p className="text-sm leading-6 text-slate-600">You will continue to Paystack to complete payment. Available methods may include cards, M-PESA, mobile wallets and bank transfer, depending on gateway configuration, your country, device and account eligibility.</p>
-    <p className="text-xs leading-5 text-slate-500">{config.privacy}</p>
+    <div className="border-t border-slate-200 pt-6">
+      <div className="flex flex-wrap justify-center gap-3" aria-label="Supported payment methods">
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 font-semibold"><CreditCard aria-hidden="true" className="size-5 text-blue-700"/>Card</div>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 font-semibold"><FaApple aria-hidden="true" className="size-5"/>Apple Pay</div>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 font-semibold"><FaGoogle aria-hidden="true" className="size-4 text-blue-600"/>Google Pay</div>
+      </div>
+      <div className="mt-6 flex gap-3 border-t border-slate-200 pt-6 text-sm leading-6 text-slate-600">
+        <LockKeyhole aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-slate-500"/>
+        <p>Cards and eligible Apple Pay or Google Pay wallets are processed securely by Paystack in KES. Your card issuer may apply its own conversion. We never store card details. <a href="#donation-privacy-details" className="underline decoration-slate-400 underline-offset-2 hover:text-blue-800">See our privacy policy.</a></p>
+      </div>
+      <p id="donation-privacy-details" className="mt-3 pl-8 text-xs leading-5 text-slate-500">{config.privacy}</p>
+    </div>
   </form>;
 }
 
