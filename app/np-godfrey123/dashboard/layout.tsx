@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 import { Menu, Bell, UserCircle } from "lucide-react";
@@ -11,7 +13,15 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => auth.onAuthStateChanged(user => {
+    setSignedIn(Boolean(user));
+    if (!user) router.replace("/np-godfrey123/login");
+  }), [router]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (!signedIn) return <div className="min-h-screen bg-slate-100 p-10 text-slate-700" role="status">Checking sign-in...</div>;
 
   return (
     <div className="min-h-screen bg-[#f4f7fc]">

@@ -1,6 +1,6 @@
 ﻿import 'server-only';
 import { createHash } from 'node:crypto';
-import { donationDb, HttpError } from './admin';
+import { donationDb, HttpError, withDonationDatabaseTimeout } from './admin';
 export async function readBody(request: Request, limit = 8192) {
   if (Number(request.headers.get('content-length')) > limit) throw new HttpError(413,'Request is too large.');
   const reader = request.body?.getReader();
@@ -21,11 +21,11 @@ export async function rateLimit(request: Request, scope: string, limit = 20) {
   const minute = Math.floor(Date.now()/60000);
   const id = createHash('sha256').update(scope + ':' + identity + ':' + minute).digest('hex');
   const db = donationDb(), ref = db.collection('donationRateLimits').doc(id);
-  await db.runTransaction(async tx => {
+  await withDonationDatabaseTimeout(db.runTransaction(async tx => {
     const snap = await tx.get(ref); const count = snap.data()?.count || 0;
     if (count >= limit) throw new HttpError(429,'Too many requests. Please try again shortly.');
     tx.set(ref,{count:count+1,expiresAt:new Date((minute+2)*60000)});
-  });
+  }));
 }
 export function json(value: unknown, status = 200) { return Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}}); }
 export async function safeRoute(work: () => Promise<Response>) {

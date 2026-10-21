@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 import {
   BookOpen,
@@ -26,7 +29,7 @@ const statistics = [
     color: "bg-blue-100 text-blue-600",
   },
   {
-    title: "Website Updates",
+    title: "Press Books",
     value: "—",
     icon: Newspaper,
     color: "bg-green-100 text-green-600",
@@ -38,7 +41,7 @@ const statistics = [
     color: "bg-purple-100 text-purple-600",
   },
   {
-    title: "Media Files",
+    title: "Managed Content",
     value: "—",
     icon: Images,
     color: "bg-orange-100 text-orange-600",
@@ -46,6 +49,7 @@ const statistics = [
 ];
 
 const actions = [
+ { title: "Manage Press Books", description: "Add book covers, prices and descriptions to the press catalogue.", href: BASE + "/press", icon: BookOpen, color: "bg-blue-900" },
   {
     title: "Upload Publication",
     description:
@@ -97,6 +101,13 @@ const actions = [
 ];
 
 export default function DashboardPage() {
+  const [counts, setCounts] = useState<Record<string, number | undefined>>({});
+  const [countError, setCountError] = useState(false);
+  useEffect(() => {
+    const unsubscribers = ["publications", "pressBooks", "members"].map(source => onSnapshot(collection(db, source), snapshot => setCounts(current => ({ ...current, [source]: snapshot.size })), () => setCountError(true)));
+    return () => unsubscribers.forEach(unsubscribe => unsubscribe());
+  }, []);
+  const values = [counts.publications, counts.pressBooks, counts.members, Object.keys(counts).length === 3 ? Object.values(counts).reduce<number>((sum, count) => sum + (count || 0), 0) : undefined];
   return (
     <div className="mx-auto max-w-7xl space-y-8">
 
@@ -138,10 +149,11 @@ export default function DashboardPage() {
 
       </div>
 
+      {countError && <p role="status" className="text-sm text-amber-800">Some counts could not load. Check Firestore access permissions.</p>}
       {/* Statistics */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
-        {statistics.map((stat) => {
+        {statistics.map((stat, index) => {
           const Icon = stat.icon;
 
           return (
@@ -157,7 +169,7 @@ export default function DashboardPage() {
                   </p>
 
                   <h3 className="mt-3 text-3xl font-bold text-gray-900">
-                    {stat.value}
+                    {values[index] ?? "?"}
                   </h3>
                 </div>
 

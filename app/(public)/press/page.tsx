@@ -1,286 +1,31 @@
-"use client";
+﻿import Image from "next/image";
+import { BookOpen, Printer, Layers, Truck, ArrowUpRight } from "lucide-react";
+import BookCatalogue from "@/components/press/BookCatalogue";
+import PrintEnquiry from "@/components/press/PrintEnquiry";
+import { whatsappLink } from "@/lib/press";
 
-import Image from "next/image";
-import Link from "next/link";
-import {
-  FaPhoneAlt,
-  FaWhatsapp,
-  FaBookOpen,
-  FaPrint,
-  FaBook,
-  FaTruck,
-  FaArrowRight,
-} from "react-icons/fa";
-
-const pressServices = [
-  {
-    title: "Book Printing & Publishing",
-    subtitle: "Bringing Knowledge to Life",
-    description:
-      "At Pioneers Footprints Press, we specialize in producing quality books and publications. Our printing services support authors, ministries, institutions, and organizations in transforming manuscripts into professionally printed publications. We are particularly committed to preserving and distributing literature that advances education, truth, and the everlasting gospel.",
-    image: "https://res.cloudinary.com/dzi7p6hoi/image/upload/v1792354564/gw3pjuemetqqqtmno6yg.jpg",
-    icon: FaBookOpen,
-  },
-  {
-    title: "Bookbinding & Finishing",
-    subtitle: "Quality That Lasts",
-    description:
-      "We provide professional bookbinding and finishing services designed to enhance the durability, appearance, and usability of printed materials. From educational books and religious publications to manuals and other printed documents, our goal is to deliver carefully finished products that meet the needs of our clients.",
-    image: "/press/bookbinding.jpg",
-    icon: FaBook,
-  },
-  {
-    title: "General Printing Services",
-    subtitle: "Professional Printing Solutions",
-    description:
-      "Our printing services include booklets, brochures, flyers, educational materials, church publications, and other printed resources. We strive to provide clear printing, attractive presentation, and dependable services for individuals, churches, schools, businesses, and organizations.",
-    image: "/press/printing-services.jpg",
-    icon: FaPrint,
-  },
-  {
-    title: "Literature Evangelism & Distribution",
-    subtitle: "Taking the Printed Word Further",
-    description:
-      "Pioneers Footprints Press is committed to supporting literature evangelism through the publication and distribution of spiritually enriching materials. We believe that the printed page remains a powerful instrument for communicating biblical truth, preserving the legacy of the Adventist pioneers, and preparing people for the coming of Christ.",
-    image: "/press/literature.jpg",
-    icon: FaTruck,
-  },
+const services = [
+  { title: "Book printing & publishing", icon: BookOpen, description: "Bring your manuscript to life with thoughtfully produced books for authors, ministries, schools and organisations." },
+  { title: "Binding & finishing", icon: Layers, description: "Give your publication a lasting finish. Discuss cover, binding and presentation options with our team." },
+  { title: "General printing", icon: Printer, description: "Booklets, brochures, flyers, manuals and church resources, prepared for clear communication." },
+  { title: "Literature distribution", icon: Truck, description: "Connect readers with educational and spiritual literature that preserves pioneer heritage and shares the gospel." },
 ];
 
 export default function PressPage() {
-  return (
-    <main className="min-h-screen bg-white text-slate-800">
-
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#06152e] via-[#092b60] to-[#104c91] py-24 text-white">
-
-        <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-blue-400/10 blur-3xl" />
-
-        <div className="relative mx-auto max-w-7xl px-6 text-center">
-
-          <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-blue-300/30 bg-white/10 px-5 py-2 text-sm font-medium text-blue-100">
-            <FaPrint />
-            Publishing • Printing • Bookbinding
-          </div>
-
-          <h1 className="mb-6 text-4xl font-extrabold tracking-tight md:text-6xl">
-            Pioneers Footprints
-            <span className="block text-blue-300">Press</span>
-          </h1>
-
-          <div className="mx-auto mb-8 h-1 w-24 rounded-full bg-blue-400" />
-
-          <p className="mx-auto max-w-3xl text-lg leading-relaxed text-blue-100 md:text-xl">
-            Dedicated to quality printing, professional book production,
-            publishing, and the advancement of literature evangelism.
-          </p>
-
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-
-            <a
-              href="https://wa.me/254742767609"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 rounded-lg bg-white px-7 py-3 font-semibold text-[#092b60] transition hover:bg-blue-100"
-            >
-              <FaWhatsapp className="text-xl" />
-              Contact Our Press
-              <FaArrowRight />
-            </a>
-
-            <a
-              href="#our-services"
-              className="inline-flex items-center gap-3 rounded-lg border border-white/40 px-7 py-3 font-semibold text-white transition hover:bg-white/10"
-            >
-              Explore Our Services
-            </a>
-
-          </div>
-
+  return <main className="min-h-screen bg-white text-slate-900">
+    <section className="relative overflow-hidden bg-[#071a34] text-white">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 md:py-24 lg:grid-cols-2">
+        <div><p className="mb-6 text-sm font-semibold uppercase tracking-[0.22em] text-blue-200">Pioneers Footprints Press</p><h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">Words with purpose.<br/><span className="text-blue-300">Print that lasts.</span></h1><p className="mt-7 max-w-lg text-lg leading-8 text-slate-300">From your first manuscript to the finished book, we help you share knowledge, preserve truth and put meaningful literature into readers’ hands.</p>
+          <div className="mt-9 flex flex-wrap gap-4"><a href="#print-enquiry" className="rounded-xl bg-white px-6 py-4 font-semibold text-blue-950 hover:bg-blue-100">Request a printing quote <ArrowUpRight className="ml-2 inline h-4 w-4"/></a><a href="#books" className="rounded-xl border border-white/40 px-6 py-4 font-semibold hover:bg-white/10">Browse our books</a></div>
+          <p className="mt-8 text-sm text-blue-200">Publishing · Printing · Bookbinding · Distribution</p>
         </div>
-      </section>
-
-      {/* INTRODUCTION */}
-      <section className="bg-[#f5f8fc] py-20">
-
-        <div className="mx-auto max-w-5xl px-6 text-center">
-
-          <span className="mb-4 block text-sm font-bold uppercase tracking-[0.2em] text-blue-700">
-            Welcome to Our Printing Press
-          </span>
-
-          <h2 className="mb-7 text-3xl font-bold text-[#092b60] md:text-4xl">
-            Excellence in Printing & Publishing
-          </h2>
-
-          <p className="text-lg leading-9 text-slate-600">
-            Pioneers Footprints Press is a publishing and printing ministry
-            dedicated to advancing the work of literature evangelism through
-            quality printing, book production, binding, and publishing
-            services. We are committed to producing publications that
-            educate, inspire, and communicate the everlasting gospel.
-          </p>
-
-        </div>
-
-      </section>
-
-      {/* SERVICES */}
-      <section id="our-services" className="py-20">
-
-        <div className="mx-auto max-w-7xl px-6">
-
-          <div className="mb-20 text-center">
-
-            <span className="text-sm font-bold uppercase tracking-[0.2em] text-blue-700">
-              What We Do
-            </span>
-
-            <h2 className="mt-3 text-3xl font-bold text-[#092b60] md:text-4xl">
-              Our Press Services
-            </h2>
-
-            <div className="mx-auto mt-5 h-1 w-20 rounded-full bg-blue-600" />
-
-            <p className="mx-auto mt-6 max-w-2xl text-slate-600">
-              Discover our printing, publishing, and book production
-              services designed to meet your needs.
-            </p>
-
-          </div>
-
-          <div className="space-y-24">
-
-            {pressServices.map((service, index) => {
-              const Icon = service.icon;
-
-              return (
-                <div
-                  key={service.title}
-                  className={`grid items-center gap-12 lg:grid-cols-2 ${
-                    index % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""
-                  }`}
-                >
-
-                  {/* IMAGE */}
-                  <div className="group relative">
-
-                    <div className="relative h-[300px] overflow-hidden rounded-2xl bg-slate-100 shadow-xl sm:h-[400px]">
-
-                      <Image
-                        src={service.image}
-                        alt={service.title}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        className="object-cover transition duration-700 group-hover:scale-105"
-                      />
-
-                    </div>
-
-                    <div className="absolute -bottom-5 right-6 flex h-16 w-16 items-center justify-center rounded-xl bg-[#092b60] text-2xl text-white shadow-lg">
-                      <Icon />
-                    </div>
-
-                  </div>
-
-                  {/* DESCRIPTION */}
-                  <div>
-
-                    <span className="mb-4 inline-block text-sm font-bold uppercase tracking-widest text-blue-700">
-                      {service.subtitle}
-                    </span>
-
-                    <h3 className="mb-6 text-3xl font-bold leading-tight text-[#092b60] md:text-4xl">
-                      {service.title}
-                    </h3>
-
-                    <div className="mb-7 h-1 w-16 rounded-full bg-blue-600" />
-
-                    <p className="mb-8 text-lg leading-9 text-slate-600">
-                      {service.description}
-                    </p>
-
-                    <a
-                      href={`https://wa.me/254742767609?text=${encodeURIComponent(
-                        `Hello Pioneers Footprints Press, I would like more information about ${service.title}.`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-3 font-semibold text-blue-700 transition hover:text-blue-900"
-                    >
-                      Enquire About This Service
-                      <FaArrowRight />
-                    </a>
-
-                  </div>
-
-                </div>
-              );
-            })}
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* CONTACT SECTION */}
-      <section className="bg-[#f5f8fc] py-20">
-
-        <div className="mx-auto max-w-5xl px-6">
-
-          <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-[#06152e] to-[#104c91] px-8 py-16 text-center text-white shadow-xl md:px-16">
-
-            <span className="text-sm font-semibold uppercase tracking-widest text-blue-200">
-              Get in Touch
-            </span>
-
-            <h2 className="mb-6 mt-4 text-3xl font-bold md:text-4xl">
-              For More Information
-            </h2>
-
-            <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-blue-100">
-              Do you need professional printing, bookbinding,
-              publishing, or literature production services?
-              Contact Pioneers Footprints Press today.
-            </p>
-
-            <a
-              href="tel:+254742767609"
-              className="mb-10 inline-flex items-center gap-4 text-2xl font-bold transition hover:text-blue-200 md:text-3xl"
-            >
-              <FaPhoneAlt className="text-blue-300" />
-              0742 767 609
-            </a>
-
-            <div className="flex flex-wrap justify-center gap-4">
-
-              <a
-                href="https://wa.me/254742767609"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 rounded-lg bg-green-600 px-8 py-4 font-semibold text-white transition hover:bg-green-700"
-              >
-                <FaWhatsapp className="text-xl" />
-                WhatsApp Us
-              </a>
-
-              <a
-                href="tel:+254742767609"
-                className="inline-flex items-center gap-3 rounded-lg bg-white px-8 py-4 font-semibold text-[#092b60] transition hover:bg-blue-100"
-              >
-                <FaPhoneAlt />
-                Call Us
-              </a>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-    </main>
-  );
+        <div className="relative rounded-3xl border border-white/15 bg-white/5 p-6 sm:p-10"><div className="relative h-72 sm:h-96"><Image src="/assets/books.png" alt="Books and literature at Pioneers Footprints" fill priority sizes="(max-width: 1024px) 90vw, 45vw" className="object-contain"/></div><div className="mt-5 border-t border-white/15 pt-5"><p className="text-lg font-semibold">A home for the printed word</p><p className="mt-2 text-sm leading-6 text-slate-300">Supporting authors, ministries and communities through literature.</p></div></div>
+      </div>
+    </section>
+    <section className="border-b border-slate-200 bg-slate-50 py-10"><div className="mx-auto grid max-w-7xl gap-6 px-6 sm:grid-cols-3">{["Printing for your purpose", "A4 & A5 book formats", "Colour & black-and-white options"].map((text, i) => <div key={text} className="flex items-center gap-4"><span className="text-sm font-bold text-blue-700">0{i+1}</span><p className="font-semibold">{text}</p></div>)}</div></section>
+    <BookCatalogue/>
+    <section id="our-services" className="bg-[#f5f8fc] py-20"><div className="mx-auto max-w-7xl px-6"><p className="text-sm font-bold uppercase tracking-widest text-blue-700">Made for your next chapter</p><h2 className="mt-3 text-3xl font-bold md:text-4xl">More than ink on paper</h2><p className="mt-5 max-w-2xl leading-8 text-slate-600">Practical printing and publishing support, with a commitment to literature that educates, inspires and serves.</p><div className="mt-10 grid gap-6 md:grid-cols-2">{services.map(({ title, icon: Icon, description }) => <article key={title} className="rounded-2xl border border-slate-200 bg-white p-8"><Icon className="mb-5 h-9 w-9 text-blue-800"/><h3 className="text-xl font-bold">{title}</h3><p className="mt-4 leading-7 text-slate-600">{description}</p><a className="mt-6 inline-flex items-center gap-2 font-semibold text-blue-700" href={whatsappLink(`Hello, I would like to know more about ${title}.`)}>Discuss your project <ArrowUpRight className="h-4 w-4"/></a></article>)}</div></div></section>
+    <PrintEnquiry/>
+    <section className="bg-blue-950 px-6 py-14 text-center text-white"><h2 className="text-2xl font-bold">Prefer to speak with our press team?</h2><p className="mt-4 text-blue-100">Let’s find the right approach for your publication.</p><div className="mt-6 flex flex-wrap justify-center gap-4"><a href="tel:+254742767609" className="rounded-xl border border-white/30 px-6 py-3 font-semibold">Call 0742 767 609</a><a href={whatsappLink("Hello Pioneers Footprints Press, I would like to discuss a project.")} className="rounded-xl bg-white px-6 py-3 font-semibold text-blue-950">Chat on WhatsApp</a></div></section>
+  </main>;
 }

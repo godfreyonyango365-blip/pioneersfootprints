@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
+  BookOpen,
   LayoutDashboard,
   Upload,
   Library,
@@ -30,6 +31,7 @@ interface SidebarProps {
 const BASE = "/np-godfrey123/dashboard";
 
 const sections = [
+ { title: "PRINTING PRESS", items: [{ label: "Manage Press Books", href: BASE + "/press", icon: BookOpen }] },
   {
     title: "OVERVIEW",
     items: [

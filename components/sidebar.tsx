@@ -8,10 +8,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const sidebarItems = [
   { name: "Home", href: "/", icon: House },
+  { name: "Press", href: "/press", icon: BookOpen },
   { name: "Services", href: "/services", icon: Briefcase },
   { name: "Publications", href: "/publications", icon: BookOpen },
   { name: "Team", href: "/team", icon: Users },
-   { name: "Sopport", href: "/donate", icon: Users },
+   { name: "Support", href: "/donate", icon: Users },
 ];
 
 interface SidebarProps {

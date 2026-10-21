@@ -8,8 +8,13 @@ function adminEnvironment() {
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID?.trim().replace(/^["']|["']$/g, "");
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim().replace(/^["']|["']$/g, "");
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n").trim();
+  const useApplicationDefault = process.env.FIREBASE_USE_APPLICATION_DEFAULT_CREDENTIALS === "true";
 
   if (!projectId || !/^[a-z0-9][a-z0-9-]{4,28}[a-z0-9]$/.test(projectId)) {
+    throw new HttpError(503, "Donation storage is not configured correctly.");
+  }
+
+  if (!privateKey && !useApplicationDefault) {
     throw new HttpError(503, "Donation storage is not configured correctly.");
   }
 
@@ -39,6 +44,22 @@ function adminApp() {
   }, "donations");
 }
 export const donationDb = () => getFirestore(adminApp());
+export async function withDonationDatabaseTimeout<T>(operation: Promise<T>, timeoutMs = 8_000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new HttpError(503, "Donation storage is temporarily unavailable.")),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 export async function requireDonationAdmin(request: Request) {
   const token = request.headers.get("authorization")?.match(/^Bearer (\S+)$/)?.[1];
   if (!token) throw new HttpError(401, "Sign in to continue.");

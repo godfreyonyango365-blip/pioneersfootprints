@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, Leaf, Laptop } from "lucide-react";
+import { BookOpen, Leaf, Laptop, Printer } from "lucide-react";
 
 const services = [
+ { title: "Pioneers Footprints Press", description: "Professional printing, publishing and binding. Browse our books or request a quote for your manuscript.", icon: Printer, color: "bg-blue-900", href: "/press" },
   {
     title: "Publications & Literature",
     description:
@@ -65,7 +66,7 @@ export default function ServicesPage() {
 </div>
 
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-8">
           {services.map(({ title, description, icon: Icon, color, href }, index) => (
             <motion.div
               key={title}

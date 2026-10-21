@@ -1,6 +1,9 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
+import { useEffect, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { motion } from "framer-motion";
 import { Mail, Briefcase } from "@/components/icon";
 
@@ -29,6 +32,16 @@ const teamMembers = [
 ];
 
 export default function TeamPage() {
+  const [members, setMembers] = useState(teamMembers);
+  const [error, setError] = useState("");
+  useEffect(() => onSnapshot(collection(db, "members"), snapshot => {
+    const added = snapshot.docs.map(d => {
+      const data = d.data();
+      return { name: String(data.name || ""), role: String(data.role || "Team member"), bio: String(data.description || data.metadata || ""), photo: String(data.imageUrl || "/assets/logo.jpg"), email: String(data.email || "") };
+    });
+    setMembers([...teamMembers.filter(member => !added.some(a => a.name.toLowerCase() === member.name.toLowerCase())), ...added]);
+    setError("");
+  }, () => setError("Additional team profiles are temporarily unavailable.")), []);
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-slate-900 px-4 py-12 transition-colors">
       <div className="max-w-6xl mx-auto">
@@ -48,9 +61,10 @@ export default function TeamPage() {
           </p>
         </motion.div>
 
+        {error && <p role="status" className="mb-6 text-center text-slate-500">{error}</p>}
         {/* Team Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {teamMembers.map((member, index) => (
+          {members.map((member, index) => (
             <motion.div
               key={member.name}
               initial={{ opacity: 0, y: 30 }}
