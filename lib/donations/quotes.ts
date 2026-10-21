@@ -2,7 +2,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { donationConfig as config, isDonationCurrency, parseDonationAmount } from './config';
 import { HttpError } from './admin';
-export type Quote = { v: 1; inputCurrency: 'KES'|'USD'; inputAmountSubunit: number; chargeAmountSubunit: number; exchangeRate: string|null; exchangeRateDate: string|null; expiresAt: number };
+export type Quote = { v: 1; inputCurrency: 'KES'|'USD'; inputAmountSubunit: number; chargeCurrency: 'KES'; chargeAmountSubunit: number; exchangeRate: string|null; exchangeRateDate: string|null; expiresAt: number };
 export function secret(name: string) {
   const value = process.env[name];
   if (!value || value.length < 24) throw new HttpError(503, 'Donations are temporarily unavailable.');
@@ -50,8 +50,8 @@ export async function createQuote(amount: unknown, currency: unknown) {
     }
     rate = cachedRate.rate; date = cachedRate.date;
   }
-  const quote: Quote = {v:1,inputCurrency:currency,inputAmountSubunit:input,chargeAmountSubunit:rate ? convertAmount(input,rate) : input,exchangeRate:rate,exchangeRateDate:date,expiresAt:Math.floor(Date.now()/1000)+900};
-  return {...quote,token:signQuote(quote),chargeCurrency:'KES',exchangeRateProvider:rate ? config.rateProvider : null,expiresAt:new Date(quote.expiresAt*1000).toISOString()};
+  const quote: Quote = {v:1,inputCurrency:currency,inputAmountSubunit:input,chargeCurrency:config.chargeCurrency,chargeAmountSubunit:rate ? convertAmount(input,rate) : input,exchangeRate:rate,exchangeRateDate:date,expiresAt:Math.floor(Date.now()/1000)+900};
+  return {...quote,token:signQuote(quote),exchangeRateProvider:rate ? config.rateProvider : null,expiresAt:new Date(quote.expiresAt*1000).toISOString()};
 }
 export function verifyQuote(token: unknown, amount: unknown, currency: unknown): Quote {
   try {
@@ -60,7 +60,7 @@ export function verifyQuote(token: unknown, amount: unknown, currency: unknown):
     if (!equalSignature(sig,signature(payload),'base64url')) throw 0;
     const q: Quote = JSON.parse(Buffer.from(payload,'base64url').toString());
     const now = Math.floor(Date.now()/1000);
-    if (q.v !== 1 || !isDonationCurrency(currency) || q.inputCurrency !== currency || q.inputAmountSubunit !== parseDonationAmount(amount,currency) || !Number.isSafeInteger(q.expiresAt) || q.expiresAt <= now || q.expiresAt > now+900) throw 0;
+    if (q.v !== 1 || !isDonationCurrency(currency) || q.inputCurrency !== currency || q.inputAmountSubunit !== parseDonationAmount(amount,currency) || q.chargeCurrency !== config.chargeCurrency || !Number.isSafeInteger(q.expiresAt) || q.expiresAt <= now || q.expiresAt > now+900) throw 0;
     if (currency === 'KES' ? q.exchangeRate !== null || q.exchangeRateDate !== null || q.chargeAmountSubunit !== q.inputAmountSubunit : typeof q.exchangeRate !== 'string' || !validDate(q.exchangeRateDate,true) || convertAmount(q.inputAmountSubunit,q.exchangeRate) !== q.chargeAmountSubunit) throw 0;
     return q;
   } catch { throw new HttpError(400,'Your quote is invalid or expired. Please request a new quote.'); }

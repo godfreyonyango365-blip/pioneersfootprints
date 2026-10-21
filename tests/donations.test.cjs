@@ -42,17 +42,18 @@ test('money rejects malformed amounts and enforces exact boundaries',() => {
 });
 test('KES quotes never call an FX service and bind input and expiration',async () => {
   const q = await quotes.createQuote('10','KES');
+  assert.equal(q.chargeCurrency,'KES');
   assert.equal(q.chargeAmountSubunit,1000);
-  assert.equal(quotes.verifyQuote(q.token,'10.00','KES').inputAmountSubunit,1000);
+  assert.equal(quotes.verifyQuote(q.token,'10.00','KES').chargeCurrency,'KES');
   assert.throws(()=>quotes.verifyQuote(q.token,'11','KES'));
   assert.throws(()=>quotes.verifyQuote(q.token,'10','USD'));
   assert.throws(()=>quotes.verifyQuote(q.token.slice(0,-1)+'!','10','KES'));
   assert.throws(()=>quotes.verifyQuote(quotes.signQuote({...quotes.verifyQuote(q.token,'10','KES'),expiresAt:Math.floor(Date.now()/1000)-1}),'10','KES'));
 });
 test('signed malformed quotes and inconsistent conversion are rejected',()=> {
-  const q = {v:1,inputCurrency:'USD',inputAmountSubunit:100,chargeAmountSubunit:12900,exchangeRate:'129',exchangeRateDate:new Date().toISOString().slice(0,10),expiresAt:Math.floor(Date.now()/1000)+900};
+  const q = {v:1,inputCurrency:'USD',inputAmountSubunit:100,chargeCurrency:'KES',chargeAmountSubunit:12900,exchangeRate:'129',exchangeRateDate:new Date().toISOString().slice(0,10),expiresAt:Math.floor(Date.now()/1000)+900};
   assert.equal(quotes.verifyQuote(quotes.signQuote(q),'1','USD').chargeAmountSubunit,12900);
-  for (const change of [{chargeAmountSubunit:12901},{exchangeRate:'Infinity'},{exchangeRateDate:'2020-01-01'},{exchangeRateDate:'2026-02-30'},{inputAmountSubunit:101},{v:2}]) assert.throws(()=>quotes.verifyQuote(quotes.signQuote({...q,...change}),'1','USD'));
+  for (const change of [{chargeCurrency:'USD'},{chargeAmountSubunit:12901},{exchangeRate:'Infinity'},{exchangeRateDate:'2020-01-01'},{exchangeRateDate:'2026-02-30'},{inputAmountSubunit:101},{v:2}]) assert.throws(()=>quotes.verifyQuote(quotes.signQuote({...q,...change}),'1','USD'));
 });
 test('decimal-rate conversion rounds half up using integers',()=> {
   assert.equal(quotes.convertAmount(101,'129.5'),13080);
@@ -103,7 +104,8 @@ test('USD quote fetches a current rate and reuses it, rejecting stale or wrong-p
   try {
     global.fetch = async()=> {calls++;return Response.json({base:'USD',quote:'KES',rate:129.25,date:new Date().toISOString().slice(0,10)});};
     const q = loader()('lib/donations/quotes.ts');
-    assert.equal((await q.createQuote('25','USD')).chargeAmountSubunit,323125);
+    const quote = await q.createQuote('25','USD');
+    assert.equal(quote.chargeCurrency,'KES');assert.equal(quote.chargeAmountSubunit,323125);
     await q.createQuote('30','USD');assert.equal(calls,1);
     for (const change of [{base:'EUR'},{quote:'USD'},{date:'2020-01-01'},{rate:0}]) {
       global.fetch = async()=>Response.json({base:'USD',quote:'KES',rate:129,date:new Date().toISOString().slice(0,10),...change});
@@ -149,20 +151,23 @@ test('admin authorization rejects unauthenticated and untrusted roles, requiring
     claims.email_verified=true;assert.equal(await admin.requireDonationAdmin(request('verified')),'test-user');
   } finally {if(old===undefined)delete process.env.ADMIN_EMAILS;else process.env.ADMIN_EMAILS=old;}
 });
-test('initialization persists before calling gateway and stores sanitized failures',async()=> {
+test('initialization persists original USD details and sends only KES to Paystack',async()=> {
   let record;
   const ref = {create:async data=>{record=data;}};
   const db = {collection:()=>({doc:()=>ref}),runTransaction:async work=>work({get:async()=>({data:()=>record}),update:(_ref,data)=>{record={...record,...data};}})};
   const payments = loader({'./admin':{donationDb:()=>db,HttpError},'firebase-admin/firestore':{FieldValue:{serverTimestamp:()=>new Date()}}})('lib/donations/payments.ts');
   const original = global.fetch, oldSite = process.env.SITE_URL;
   process.env.SITE_URL='https://www.pioneersfootprints.com';
-  const quote = await quotes.createQuote('10','KES');
-  const input = {amount:'10',currency:'KES',quoteToken:quote.token,email:'donor@example.test',donorName:'',purpose:'general'};
+  const quote = quotes.signQuote({v:1,inputCurrency:'USD',inputAmountSubunit:1000,chargeCurrency:'KES',chargeAmountSubunit:129250,exchangeRate:'129.25',exchangeRateDate:new Date().toISOString().slice(0,10),expiresAt:Math.floor(Date.now()/1000)+900});
+  const input = {amount:'10',currency:'USD',quoteToken:quote,email:'donor@example.test',donorName:'',purpose:'general'};
   try {
     global.fetch=async(_url,options)=>{
       assert.equal(record.status,'pending');
       const body=JSON.parse(options.body);
-      assert.equal(body.amount,'1000');assert.equal(body.currency,'KES');assert.equal(body.reference,record.reference);
+      assert.equal(record.currency,'KES');assert.equal(record.amountSubunit,129250);
+      assert.equal(record.donorInputCurrency,'USD');assert.equal(record.donorInputAmountSubunit,1000);assert.equal(record.exchangeRate,'129.25');
+      assert.equal(body.amount,'129250');assert.equal(body.currency,'KES');assert.equal(body.reference,record.reference);
+      assert.equal(body.metadata.donor_input_currency,'USD');assert.equal(body.metadata.donor_input_amount_subunit,1000);assert.equal(body.metadata.usd_to_kes_rate,'129.25');
       return Response.json({status:true,data:{reference:body.reference,authorization_url:'https://checkout.paystack.com/test'}});
     };
     assert.match((await payments.initializeDonation(input)).authorizationUrl,/^https:/);

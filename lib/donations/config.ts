@@ -3,6 +3,7 @@ export const donationConfig = {
   displayName: "Pioneers Footprints",
   referencePrefix: "pff-don-",
   source: "pioneersfootprints-donations-v1",
+  chargeCurrency: "KES" as const,
   defaultPurpose: "general",
   purposes: { general: "Where it is needed most" },
   currencies: {

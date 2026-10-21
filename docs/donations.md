@@ -2,6 +2,8 @@
 
 The application uses Next.js Node route handlers, Firebase Auth, Firestore Admin and Paystack hosted checkout. Shared organization, purpose, gateway, currency, receipt and privacy settings live in `lib/donations/config.ts`; business logic uses those settings. Keep referencePrefix and source stable after launch. Purpose IDs must remain stable for historical records.
 
+All signed quotes bind `chargeCurrency` to `KES`, and every Paystack transaction is initialized in KES. For USD input, the donation record retains the donor-entered USD subunit amount, the USD-to-KES rate and its provenance, while `currency` and `amountSubunit` contain the actual KES payment. Paystack therefore receives only KES charges from this flow; settlement into a KES account must also be enabled and configured in the Paystack merchant dashboard.
+
 ## Required server environment
 
 The deployed Vercel project must use Node.js 22 or newer because Firebase Admin 14 requires Node 22+. This repository enforces that minimum through `package.json`. Redeploy after changing the runtime or any environment variable.

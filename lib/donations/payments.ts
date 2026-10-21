@@ -30,10 +30,10 @@ export async function initializeDonation(body: Record<string,unknown>) {
   const reference = config.referencePrefix + randomBytes(16).toString('hex');
   const ref = donationDb().collection('donations').doc(reference);
   const name = typeof body.donorName === 'string' ? body.donorName.trim() : '';
-  const record = {reference,siteId:config.siteId,source:config.source,donorEmail:body.email.trim().toLowerCase(),donorName:name || 'Anonymous',purpose:config.purposes[body.purpose],purposeId:body.purpose,currency:'KES',amountSubunit:quote.chargeAmountSubunit,donorInputCurrency:quote.inputCurrency,donorInputAmountSubunit:quote.inputAmountSubunit,exchangeRate:quote.exchangeRate,exchangeRateDate:quote.exchangeRateDate,exchangeRateProvider:quote.exchangeRate ? config.rateProvider:null,status:'pending',reason:'Awaiting payment completion.',initializedAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()};
+  const record = {reference,siteId:config.siteId,source:config.source,donorEmail:body.email.trim().toLowerCase(),donorName:name || 'Anonymous',purpose:config.purposes[body.purpose],purposeId:body.purpose,currency:quote.chargeCurrency,amountSubunit:quote.chargeAmountSubunit,donorInputCurrency:quote.inputCurrency,donorInputAmountSubunit:quote.inputAmountSubunit,exchangeRate:quote.exchangeRate,exchangeRateDate:quote.exchangeRateDate,exchangeRateProvider:quote.exchangeRate ? config.rateProvider:null,status:'pending',reason:'Awaiting payment completion.',initializedAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()};
   await ref.create(record);
   try {
-    const data = await gateway('/transaction/initialize',{amount:String(record.amountSubunit),currency:'KES',email:record.donorEmail,reference,callback_url:callback,metadata:{donation:true,source:config.source,donor_name:name,donation_purpose:body.purpose,donation_currency:'KES',donation_amount_major:donationSubunitToMajor(record.amountSubunit),donation_amount_subunit:record.amountSubunit,donor_input_currency:quote.inputCurrency,donor_input_amount_major:donationSubunitToMajor(quote.inputAmountSubunit),donor_input_amount_subunit:quote.inputAmountSubunit,usd_to_kes_rate:quote.exchangeRate,exchange_rate_date:quote.exchangeRateDate,exchange_rate_provider:record.exchangeRateProvider,custom_fields:[]}});
+    const data = await gateway('/transaction/initialize',{amount:String(record.amountSubunit),currency:config.chargeCurrency,email:record.donorEmail,reference,callback_url:callback,metadata:{donation:true,source:config.source,donor_name:name,donation_purpose:body.purpose,donation_currency:config.chargeCurrency,donation_amount_major:donationSubunitToMajor(record.amountSubunit),donation_amount_subunit:record.amountSubunit,donor_input_currency:quote.inputCurrency,donor_input_amount_major:donationSubunitToMajor(quote.inputAmountSubunit),donor_input_amount_subunit:quote.inputAmountSubunit,usd_to_kes_rate:quote.exchangeRate,exchange_rate_date:quote.exchangeRateDate,exchange_rate_provider:record.exchangeRateProvider,custom_fields:[]}});
     if (data.reference !== reference || !validCheckout(data.authorization_url)) throw new HttpError(502,'The payment provider returned an invalid checkout.');
     return {authorizationUrl:data.authorization_url as string,reference};
   } catch {
@@ -46,13 +46,13 @@ export async function reconcileDonation(reference: string, event?: {id?: unknown
   const db = donationDb(), ref = db.collection('donations').doc(reference);
   const existing = await ref.get();
   if (!existing.exists) throw new HttpError(404,'Donation record not found.');
-  if (event && (event.currency !== 'KES' || event.amount !== existing.data()?.amountSubunit || !/^[1-9][0-9]{0,30}$/.test(String(event.id)))) throw new HttpError(409,'Payment event details could not be confirmed.');
+  if (event && (event.currency !== config.chargeCurrency || event.amount !== existing.data()?.amountSubunit || !/^[1-9][0-9]{0,30}$/.test(String(event.id)))) throw new HttpError(409,'Payment event details could not be confirmed.');
   const data = await gateway('/transaction/verify/' + encodeURIComponent(reference));
   return db.runTransaction(async tx => {
     const snap = await tx.get(ref), record = snap.data();
     let metadata = data.metadata;
     if (typeof metadata === 'string') { try { metadata = JSON.parse(metadata); } catch { metadata = null; } }
-    if (!record || record.reference !== reference || record.source !== config.source || record.siteId !== config.siteId || record.currency !== 'KES' || data.reference !== reference || data.currency !== 'KES' || !Number.isSafeInteger(data.amount) || data.amount !== record.amountSubunit || metadata?.donation !== true || metadata?.source !== config.source || (data.requested_amount !== undefined && data.requested_amount !== null && Number(data.requested_amount) !== data.amount) || !/^[1-9][0-9]{0,30}$/.test(String(data.id)) || (event && String(event.id) !== String(data.id)) || (record.gatewayTransactionId && record.gatewayTransactionId !== String(data.id)) || typeof data.customer?.email !== 'string' || data.customer.email.toLowerCase() !== record.donorEmail.toLowerCase()) throw new HttpError(409,'Payment details could not be confirmed.');
+    if (!record || record.reference !== reference || record.source !== config.source || record.siteId !== config.siteId || record.currency !== config.chargeCurrency || data.reference !== reference || data.currency !== config.chargeCurrency || !Number.isSafeInteger(data.amount) || data.amount !== record.amountSubunit || metadata?.donation !== true || metadata?.source !== config.source || (data.requested_amount !== undefined && data.requested_amount !== null && Number(data.requested_amount) !== data.amount) || !/^[1-9][0-9]{0,30}$/.test(String(data.id)) || (event && String(event.id) !== String(data.id)) || (record.gatewayTransactionId && record.gatewayTransactionId !== String(data.id)) || typeof data.customer?.email !== 'string' || data.customer.email.toLowerCase() !== record.donorEmail.toLowerCase()) throw new HttpError(409,'Payment details could not be confirmed.');
     const status = data.status === 'success' ? 'success' : ['failed','abandoned','reversed'].includes(data.status) ? 'failed' : 'pending';
     if (status === 'success' && (!data.paid_at || !Number.isFinite(Date.parse(data.paid_at)))) throw new HttpError(409,'Payment details could not be confirmed.');
     const effective = record.status === 'success' ? 'success' : status;
@@ -62,9 +62,9 @@ export async function reconcileDonation(reference: string, event?: {id?: unknown
       const bound = await tx.get(transactionRef);
       if (bound.exists && bound.data()?.reference !== reference) throw new HttpError(409,'Payment details conflict with an existing donation.');
       tx.set(transactionRef,{reference});
-      tx.update(ref,{status:effective,reason,channel:typeof data.channel === 'string' ? data.channel.slice(0,50):null,gatewayTransactionId:String(data.id),verifiedDonorEmail:data.customer.email,verifiedAmountSubunit:data.amount,verifiedCurrency:'KES',paidAt:status === 'success' ? new Date(data.paid_at):null,updatedAt:FieldValue.serverTimestamp()});
+      tx.update(ref,{status:effective,reason,channel:typeof data.channel === 'string' ? data.channel.slice(0,50):null,gatewayTransactionId:String(data.id),verifiedDonorEmail:data.customer.email,verifiedAmountSubunit:data.amount,verifiedCurrency:config.chargeCurrency,paidAt:status === 'success' ? new Date(data.paid_at):null,updatedAt:FieldValue.serverTimestamp()});
     }
-    return {reference,status:effective,reason,amountSubunit:record.amountSubunit,currency:'KES' as const};
+    return {reference,status:effective,reason,amountSubunit:record.amountSubunit,currency:config.chargeCurrency};
   });
 }
 

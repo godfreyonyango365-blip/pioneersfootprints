@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { donationConfig as config, DonationCurrency, formatDonationAmount, parseDonationAmount } from '@/lib/donations/config';
 import { readDonationResponse } from '@/lib/donations/client';
-type Quote = {token:string;inputCurrency:DonationCurrency;inputAmountSubunit:number;chargeAmountSubunit:number;exchangeRate:string|null;exchangeRateDate:string|null;exchangeRateProvider:string|null;expiresAt:string};
+type Quote = {token:string;inputCurrency:DonationCurrency;inputAmountSubunit:number;chargeCurrency:'KES';chargeAmountSubunit:number;exchangeRate:string|null;exchangeRateDate:string|null;exchangeRateProvider:string|null;expiresAt:string};
 export default function DonationForm() {
   const [amount,setAmount] = useState('1000.00');
   const [currency,setCurrency] = useState<DonationCurrency>('KES');
@@ -25,7 +25,7 @@ export default function DonationForm() {
         const response = await fetch('/api/donations/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount,currency}),signal:controller.signal});
         const data = await readDonationResponse<Quote>(response,'The donation service is temporarily unavailable. Please try again shortly.');
         if (controller.signal.aborted || generation.current !== id) return;
-        if (data.inputCurrency !== currency || data.inputAmountSubunit !== parseDonationAmount(amount,currency) || !Number.isSafeInteger(data.chargeAmountSubunit) || Date.parse(data.expiresAt) <= Date.now()+30000) throw new Error('Please request a fresh quote.');
+        if (data.inputCurrency !== currency || data.inputAmountSubunit !== parseDonationAmount(amount,currency) || data.chargeCurrency !== config.chargeCurrency || !Number.isSafeInteger(data.chargeAmountSubunit) || Date.parse(data.expiresAt) <= Date.now()+30000) throw new Error('Please request a fresh quote.');
         setQuote(data); setQuoteKey(key);
         refreshTimer = setTimeout(() => { setQuote(null); setRefresh(n => n+1); },Math.max(0,Date.parse(data.expiresAt)-Date.now()-30000));
       } catch (err) { if (!controller.signal.aborted && generation.current === id) setQuoteError(err instanceof Error ? err.message : 'Unable to calculate your donation.'); }
@@ -59,7 +59,7 @@ export default function DonationForm() {
       <label className="block font-medium">Donation purpose<select name="purpose" defaultValue={config.defaultPurpose} className={field}>{Object.entries(config.purposes).map(([id,label]) => <option key={id} value={id}>{label}</option>)}</select></label>
     </fieldset>
     <div aria-live="polite" className="min-w-0 rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-950">
-      {ready ? <><p>Your donation: <strong>{formatDonationAmount(quote.inputAmountSubunit,currency)}</strong></p><p>Paystack will charge <strong>{formatDonationAmount(quote.chargeAmountSubunit,'KES')}</strong>.</p>{currency === 'USD' && <><p>1 USD = {quote.exchangeRate} KES · {quote.exchangeRateProvider} · {quote.exchangeRateDate}</p><p>Your card issuer or payment provider may apply additional conversion fees.</p></>}</> : <p>{quoteError || 'Calculating your secure quote…'}</p>}
+      {ready ? <><p>Your donation: <strong>{formatDonationAmount(quote.inputAmountSubunit,currency)}</strong></p><p>Paystack will charge <strong>{formatDonationAmount(quote.chargeAmountSubunit,quote.chargeCurrency)}</strong>.</p>{currency === 'USD' && <><p>1 USD = {quote.exchangeRate} KES · {quote.exchangeRateProvider} · {quote.exchangeRateDate}</p><p>Your card issuer or payment provider may apply additional conversion fees.</p></>}</> : <p>{quoteError || 'Calculating your secure quote…'}</p>}
       {quoteError && <button type="button" onClick={() => setRefresh(n => n+1)} className="mt-2 underline">Retry quote</button>}
     </div>
     {error && <p role="alert" className="break-words text-red-700">{error}</p>}
