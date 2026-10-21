@@ -4,7 +4,7 @@ import { donationConfig as config, DonationCurrency, formatDonationAmount, parse
 import { readDonationResponse } from '@/lib/donations/client';
 type Quote = {token:string;inputCurrency:DonationCurrency;inputAmountSubunit:number;chargeCurrency:'KES';chargeAmountSubunit:number;exchangeRate:string|null;exchangeRateDate:string|null;exchangeRateProvider:string|null;expiresAt:string};
 export default function DonationForm() {
-  const [amount,setAmount] = useState('1000.00');
+  const [amount,setAmount] = useState('');
   const [currency,setCurrency] = useState<DonationCurrency>('KES');
   const [quote,setQuote] = useState<Quote|null>(null);
   const [quoteKey,setQuoteKey] = useState('');
@@ -18,6 +18,9 @@ export default function DonationForm() {
     const id = ++generation.current;
     const controller = new AbortController();
     let refreshTimer: ReturnType<typeof setTimeout>;
+    if (!amount.trim()) {
+      return () => controller.abort();
+    }
     const timer = setTimeout(async () => {
       setQuote(null); setQuoteError('');
       try {
@@ -50,7 +53,7 @@ export default function DonationForm() {
     <div><p className="text-sm font-semibold text-green-700">Secure hosted checkout</p><h2 className="mt-2 text-2xl font-bold">Make a donation</h2></div>
     <fieldset disabled={busy} className="grid min-w-0 gap-5 sm:grid-cols-3">
       <label className="font-medium">Currency<select value={currency} onChange={e => {setCurrency(e.target.value as DonationCurrency);setQuote(null);setQuoteError('');}} className={field}><option>KES</option><option>USD</option></select></label>
-      <label className="font-medium sm:col-span-2">Donation amount<input name="amount" inputMode="decimal" required maxLength={11} value={amount} onChange={e => {setAmount(e.target.value);setQuote(null);setQuoteError('');}} className={field} aria-describedby="amount-limits" /></label>
+      <label className="font-medium sm:col-span-2">Donation amount<input name="amount" inputMode="decimal" required maxLength={11} value={amount} onChange={e => {setAmount(e.target.value);setQuote(null);setQuoteError('');}} placeholder={currency === 'KES' ? 'Enter amount in KES' : 'Enter amount in USD'} autoComplete="off" className={field} aria-describedby="amount-limits" /></label>
     </fieldset>
     <p id="amount-limits" className="text-sm text-slate-600">{formatDonationAmount(config.currencies[currency].min,currency)} – {formatDonationAmount(config.currencies[currency].max,currency)}</p>
     <fieldset disabled={busy} className="space-y-5">
@@ -59,7 +62,7 @@ export default function DonationForm() {
       <label className="block font-medium">Donation purpose<select name="purpose" defaultValue={config.defaultPurpose} className={field}>{Object.entries(config.purposes).map(([id,label]) => <option key={id} value={id}>{label}</option>)}</select></label>
     </fieldset>
     <div aria-live="polite" className="min-w-0 rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-950">
-      {ready ? <><p>Your donation: <strong>{formatDonationAmount(quote.inputAmountSubunit,currency)}</strong></p><p>Paystack will charge <strong>{formatDonationAmount(quote.chargeAmountSubunit,quote.chargeCurrency)}</strong>.</p>{currency === 'USD' && <><p>1 USD = {quote.exchangeRate} KES · {quote.exchangeRateProvider} · {quote.exchangeRateDate}</p><p>Your card issuer or payment provider may apply additional conversion fees.</p></>}</> : <p>{quoteError || 'Calculating your secure quote…'}</p>}
+      {ready ? <><p>Your donation: <strong>{formatDonationAmount(quote.inputAmountSubunit,currency)}</strong></p><p>Paystack will charge <strong>{formatDonationAmount(quote.chargeAmountSubunit,quote.chargeCurrency)}</strong>.</p>{currency === 'USD' && <><p>1 USD = {quote.exchangeRate} KES · {quote.exchangeRateProvider} · {quote.exchangeRateDate}</p><p>Your card issuer or payment provider may apply additional conversion fees.</p></>}</> : <p>{quoteError || (amount ? 'Calculating your secure quote…' : 'Enter a custom donation amount to receive a secure KES quote.')}</p>}
       {quoteError && <button type="button" onClick={() => setRefresh(n => n+1)} className="mt-2 underline">Retry quote</button>}
     </div>
     {error && <p role="alert" className="break-words text-red-700">{error}</p>}
