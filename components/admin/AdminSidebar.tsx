@@ -25,7 +25,10 @@ import {
 
 interface SidebarProps {
   isOpen: boolean;
+  isLoggingOut: boolean;
   onClose: () => void;
+  onLogout: () => void;
+  onNavigate: (href: string) => void;
 }
 
 const BASE = "/np-godfrey123/dashboard";
@@ -137,7 +140,10 @@ const sections = [
 
 export default function AdminSidebar({
   isOpen,
+  isLoggingOut,
   onClose,
+  onLogout,
+  onNavigate,
 }: SidebarProps) {
   const pathname = usePathname();
 
@@ -213,7 +219,10 @@ export default function AdminSidebar({
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={onClose}
+                      onClick={() => {
+                        onClose();
+                        if (!active) onNavigate(item.href);
+                      }}
                       className={`
                         flex items-center gap-3
                         rounded-xl px-4 py-3
@@ -259,13 +268,15 @@ export default function AdminSidebar({
             View Website
           </Link>
 
-          <Link
-            href="/"
-            className="flex items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold hover:bg-red-700"
+          <button
+            type="button"
+            onClick={onLogout}
+            disabled={isLoggingOut}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <LogOut size={17} />
-            Exit Dashboard
-          </Link>
+            {isLoggingOut ? "Logging out…" : "Log out"}
+          </button>
 
           <p className="mt-4 text-center text-xs text-gray-500">
             © {new Date().getFullYear()} Pioneers Footprints

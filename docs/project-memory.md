@@ -24,3 +24,7 @@ This file records durable implementation knowledge for future contributors. Read
 
 - Admin management pages must support narrow screens as well as desktop. Use a desktop table only with a corresponding mobile card layout and preserve long-reference wrapping or truncation.
 - Loading, empty, expired-session, authorization, provider-error, and successful-action states must be explicit and accessible. Destructive or provider-changing actions require clear labels; reconciliation is safe to repeat and should be scoped to a single reference.
+- Firebase authentication and administrator authorization are separate checks. The dashboard layout must wait for `/api/admin/session` to confirm trusted claims or an allowlisted email before mounting protected children; being signed in alone is insufficient.
+- Treat authorization checks as cancellable asynchronous work. Abort the previous check when auth state changes, confirm the current Firebase UID before accepting a result, and unmount protected children immediately when logout begins.
+- All dashboard logout controls sign out through Firebase and replace the current history entry with `/np-godfrey123/login`. Keep the immediate “Logging out…” and route-transition feedback; do not redirect an Exit Dashboard control to the public homepage.
+- Never place demo passwords or credential autofill helpers in source-controlled admin forms.

@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser: User | null) => {
@@ -26,8 +27,14 @@ export default function DashboardPage() {
   }, [router]);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    router.push("/np-godfrey123/login");
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await signOut(auth);
+      router.replace("/np-godfrey123/login");
+    } catch {
+      setLoggingOut(false);
+    }
   };
 
   if (loading) {
@@ -49,10 +56,11 @@ export default function DashboardPage() {
           </div>
           <button
             onClick={handleLogout}
+            disabled={loggingOut}
             className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
           >
             <LogOut className="w-5 h-5" />
-            Logout
+            {loggingOut ? "Logging out…" : "Logout"}
           </button>
         </div>
 

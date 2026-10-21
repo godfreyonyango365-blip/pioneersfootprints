@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Banknote,
@@ -18,8 +18,6 @@ import {
   ShieldCheck,
   XCircle,
 } from "lucide-react";
-import { onAuthStateChanged } from "firebase/auth";
-
 import { auth } from "@/lib/firebase";
 import { readDonationResponse } from "@/lib/donations/client";
 import { formatDonationAmount } from "@/lib/donations/config";
@@ -109,7 +107,6 @@ export default function AdminDonationsPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
-  const [signedIn, setSignedIn] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
   const [history, setHistory] = useState<Array<string | null>>([]);
   const [reload, setReload] = useState(0);
@@ -118,18 +115,11 @@ export default function AdminDonationsPage() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | DonationStatus>("all");
   const [copied, setCopied] = useState<string | null>(null);
+  const actionRequest = useRef<AbortController | null>(null);
 
-  useEffect(
-    () =>
-      onAuthStateChanged(auth, (user) => {
-        setSignedIn(Boolean(user));
-        if (!user) setLoading(false);
-      }),
-    [],
-  );
+  useEffect(() => () => actionRequest.current?.abort(), []);
 
   useEffect(() => {
-    if (!signedIn) return;
     const controller = new AbortController();
 
     async function load() {
@@ -164,7 +154,7 @@ export default function AdminDonationsPage() {
 
     void load();
     return () => controller.abort();
-  }, [signedIn, cursor, reload]);
+  }, [cursor, reload]);
 
   const filteredDonations = useMemo(() => {
     if (!data) return [];
@@ -182,6 +172,9 @@ export default function AdminDonationsPage() {
   }, [data, query, status]);
 
   async function reconcile(donationReference: string) {
+    actionRequest.current?.abort();
+    const controller = new AbortController();
+    actionRequest.current = controller;
     setReconciling(donationReference);
     setError("");
     setNotice("");
@@ -195,6 +188,7 @@ export default function AdminDonationsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ reference: donationReference.trim() }),
+        signal: controller.signal,
       });
       const result = await readDonationResponse<{ status: DonationStatus }>(
         response,
@@ -206,13 +200,15 @@ export default function AdminDonationsPage() {
       );
       setReload((value) => value + 1);
     } catch (reconcileError) {
-      setError(
-        reconcileError instanceof Error
-          ? reconcileError.message
-          : "Unable to verify this donation.",
-      );
+      if (!controller.signal.aborted) {
+        setError(
+          reconcileError instanceof Error
+            ? reconcileError.message
+            : "Unable to verify this donation.",
+        );
+      }
     } finally {
-      setReconciling(null);
+      if (!controller.signal.aborted) setReconciling(null);
     }
   }
 
@@ -317,12 +313,6 @@ export default function AdminDonationsPage() {
           Only server-verified successful payments are included in the received total.
         </div>
       </header>
-
-      {!signedIn && !loading && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900">
-          Your session has ended. <Link className="font-semibold underline" href="/np-godfrey123/login">Sign in again</Link>.
-        </div>
-      )}
 
       <div aria-live="polite" className="space-y-3">
         {error && (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { LoaderCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [openingDashboard, setOpeningDashboard] = useState(false);
   const [error, setError] = useState("");
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
@@ -20,11 +22,12 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/np-godfrey123/dashboard");
-    } catch (err: any) {
-      setError(err.message || "Invalid email or password.");
-    } finally {
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      await credential.user.getIdToken(true);
+      setOpeningDashboard(true);
+      router.replace("/np-godfrey123/dashboard");
+    } catch (loginError: unknown) {
+      setError(loginError instanceof Error ? loginError.message : "Invalid email or password.");
       setLoading(false);
     }
   }
@@ -49,7 +52,7 @@ export default function LoginPage() {
             Sign in to access the Pioneers Footprints Dashboard
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5" aria-busy={loading}>
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -59,6 +62,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
+                disabled={loading}
                 placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -75,6 +79,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
+                disabled={loading}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -95,8 +100,16 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Signing In..." : "Login"}
+              <span className="flex items-center justify-center gap-2">
+                {loading && <LoaderCircle className="size-4 animate-spin" />}
+                {openingDashboard ? "Opening dashboard…" : loading ? "Signing in…" : "Login"}
+              </span>
             </button>
+            {openingDashboard && (
+              <p role="status" className="text-center text-sm text-blue-200">
+                Login successful. Loading your administration dashboard…
+              </p>
+            )}
           </form>
 
           <div className="mt-8 border-t border-slate-700 pt-5 text-center text-sm text-slate-500">
