@@ -39,8 +39,8 @@ export default function PressPage() {
       </div>
     </section>
     <section className="border-b border-slate-200 bg-slate-50 py-10"><div className="mx-auto grid max-w-7xl gap-6 px-6 sm:grid-cols-3">{["Printing for your purpose", "A4 & A5 book formats", "Colour & black-and-white options"].map((text, i) => <div key={text} className="flex items-center gap-4"><span className="text-sm font-bold text-blue-700">0{i+1}</span><p className="font-semibold">{text}</p></div>)}</div></section>
-    <BookCatalogue/>
     <LiteratureDistribution />
+    <BookCatalogue/>
     <PrintEnquiry/>
     <section className="bg-blue-950 px-6 py-14 text-center text-white"><h2 className="text-2xl font-bold">Prefer to speak with our press team?</h2><p className="mt-4 text-blue-100">Let’s find the right approach for your publication.</p><div className="mt-6 flex flex-wrap justify-center gap-4"><a href="tel:+254742767609" className="rounded-xl border border-white/30 px-6 py-3 font-semibold">Call 0742 767 609</a><a href={whatsappLink("Hello Pioneers Footprints Press, I would like to discuss a project.")} className="rounded-xl bg-white px-6 py-3 font-semibold text-blue-950">Chat on WhatsApp</a></div></section>
   </main>;
