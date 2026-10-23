@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, sendEmailVerification, signOut } from "firebase/auth";
 import { Bell, LoaderCircle, Menu, UserCircle } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -35,6 +35,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [navigationTarget, setNavigationTarget] = useState<string | null>(null);
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState("");
+  const [verificationBusy, setVerificationBusy] = useState(false);
   const navigating = navigationTarget !== null && navigationTarget !== pathname;
 
   useEffect(() => {
@@ -43,6 +46,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       authorizationRequest.current?.abort();
       setAccessError("");
+      setNeedsEmailVerification(false);
+      setVerificationMessage("");
 
       if (!user) {
         setAccess("signed-out");
@@ -64,8 +69,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           });
           if (response.status === 403) {
             if (active && !controller.signal.aborted) {
+              const result = (await response.json().catch(() => null)) as { error?: string } | null;
               setAccess("forbidden");
-              setAccessError("This account is signed in but has not been granted administrator access.");
+              setAccessError(
+                result?.error === "Verify your administrator email before continuing."
+                  ? result.error
+                  : "This account is signed in but has not been granted administrator access.",
+              );
+              setNeedsEmailVerification(
+                !user.emailVerified && result?.error === "Verify your administrator email before continuing.",
+              );
             }
             return;
           }
@@ -111,6 +124,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }
 
+  async function handleVerification() {
+    const user = auth.currentUser;
+    if (!user || verificationBusy) return;
+    setVerificationBusy(true);
+    setVerificationMessage("");
+    try {
+      await sendEmailVerification(user);
+      setVerificationMessage("Verification email sent. Open the link, then sign out and sign in again.");
+    } catch {
+      setVerificationMessage("Unable to send the verification email right now. Please try again shortly.");
+    } finally {
+      setVerificationBusy(false);
+    }
+  }
+
   if (loggingOut) return <FullPageStatus message="Logging out…" />;
   if (navigating) return <FullPageStatus message="Loading dashboard…" />;
   if (access === "checking") return <FullPageStatus message="Confirming administrator access…" />;
@@ -125,6 +153,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {access === "forbidden" ? "Administrator access needed" : "Access check unavailable"}
           </h1>
           <p className="mt-3 leading-7 text-slate-600">{accessError}</p>
+          {needsEmailVerification && (
+            <p className="mt-3 leading-7 text-slate-600">
+              Your administrator email must be verified before it can use the allowlist.
+            </p>
+          )}
+          {verificationMessage && <p role="status" className="mt-3 text-sm text-blue-800">{verificationMessage}</p>}
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             {access === "error" && (
               <button
@@ -133,6 +167,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="rounded-xl border border-blue-200 px-5 py-3 font-semibold text-blue-800"
               >
                 Try again
+              </button>
+            )}
+            {needsEmailVerification && (
+              <button
+                type="button"
+                disabled={verificationBusy}
+                onClick={() => void handleVerification()}
+                className="rounded-xl border border-blue-200 px-5 py-3 font-semibold text-blue-800 disabled:opacity-60"
+              >
+                {verificationBusy ? "Sending…" : "Send verification email"}
               </button>
             )}
             <button

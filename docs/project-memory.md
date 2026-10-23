@@ -28,3 +28,8 @@ This file records durable implementation knowledge for future contributors. Read
 - Treat authorization checks as cancellable asynchronous work. Abort the previous check when auth state changes, confirm the current Firebase UID before accepting a result, and unmount protected children immediately when logout begins.
 - All dashboard logout controls sign out through Firebase and replace the current history entry with `/np-godfrey123/login`. Keep the immediate “Logging out…” and route-transition feedback; do not redirect an Exit Dashboard control to the public homepage.
 - Never place demo passwords or credential autofill helpers in source-controlled admin forms.
+- The admin login preflights `/api/admin/session`; an allowlisted Firebase email must be verified, while claims-based administrator access remains supported. Keep `ADMIN_EMAILS` server-only and configured separately in every deployed environment.
+
+## Press content
+
+- Press distribution updates are stored in the public-readable `pressDistributions` Firestore collection and managed from `/np-godfrey123/dashboard/press`. Deployed Firestore rules must allow public reads but restrict writes to trusted administrators.

@@ -34,7 +34,7 @@ interface SidebarProps {
 const BASE = "/np-godfrey123/dashboard";
 
 const sections = [
- { title: "PRINTING PRESS", items: [{ label: "Manage Press Books", href: BASE + "/press", icon: BookOpen }] },
+ { title: "PRINTING PRESS", items: [{ label: "Press & Distribution", href: BASE + "/press", icon: BookOpen }] },
   {
     title: "OVERVIEW",
     items: [

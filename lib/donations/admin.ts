@@ -67,9 +67,16 @@ export async function requireDonationAdmin(request: Request) {
   try { claims = await getAuth(adminApp()).verifyIdToken(token, true); }
   catch { throw new HttpError(401, "Please sign in again."); }
   const roles = Array.isArray(claims.roles) ? claims.roles : [claims.role];
-  const emails = (process.env.ADMIN_EMAILS ?? "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
-  if (claims.admin !== true && !roles.some(r => donationConfig.adminRoles.includes(r)) &&
-      !(claims.email_verified && claims.email && emails.includes(claims.email.toLowerCase()))) {
+  const emails = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map(s => s.trim().replace(/^["']|["']$/g, "").toLowerCase())
+    .filter(Boolean);
+  const trustedClaim = claims.admin === true || roles.some(r => donationConfig.adminRoles.includes(r));
+  const allowlistedEmail = claims.email && emails.includes(claims.email.toLowerCase());
+  if (!trustedClaim && allowlistedEmail && !claims.email_verified) {
+    throw new HttpError(403, "Verify your administrator email before continuing.");
+  }
+  if (!trustedClaim && !(claims.email_verified && allowlistedEmail)) {
     throw new HttpError(403, "Administrator access required.");
   }
   return claims.uid;
