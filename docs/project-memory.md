@@ -33,3 +33,4 @@ This file records durable implementation knowledge for future contributors. Read
 ## Press content
 
 - Press distribution updates are stored in the public-readable `pressDistributions` Firestore collection and managed from `/np-godfrey123/dashboard/press`. Deployed Firestore rules must allow public reads but restrict writes to trusted administrators.
+- The public press page and `/services/literature` share `components/press/BookCatalogue.tsx`; keep book data in the `pressBooks` Firestore collection so catalogue updates stay synchronized across both pages.

@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { Book, Archive, Languages, Star, ScrollText, Library, ShoppingCart, MessageCircle, X } from "lucide-react";
+import BookCatalogue from "@/components/press/BookCatalogue";
 
 const WHATSAPP_NUMBER = "254742767609";
 const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=Hello,%20I%20am%20inquiring%20about%20a%20specific%20book%20from%20the%20Literature%20page.`;
@@ -91,13 +92,27 @@ export default function LiteraturePage() {
             Publications & <span className="text-slate-900 dark:text-white">Literature</span>
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed mx-auto md:mx-0">
-            We provide a wide range of spiritual and educational materials curated to nourish your soul and expand your biblical understanding.
+            Find KJV, Dholuo and Kiswahili Bibles, song books, Ellen G. White writings, pioneer books and archival publications selected to deepen faith and biblical understanding.
           </p>
+          <a
+            href="#books"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
+          >
+            Browse books from our press
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
       </div>
 
       {/* Services Grid */}
       <div className="max-w-5xl mx-auto px-4 py-16">
+        <div className="mb-10 max-w-2xl">
+          <p className="text-sm font-bold uppercase tracking-widest text-blue-600">Our literature</p>
+          <h2 className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">Explore our collections</h2>
+          <p className="mt-4 leading-7 text-slate-600 dark:text-slate-400">
+            Browse the kinds of Bibles, worship resources, educational books and historic Adventist writings we help readers access.
+          </p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
           {services.map((service, index) => (
             <div 
@@ -147,11 +162,16 @@ export default function LiteraturePage() {
         </div>
       </div>
 
+      {/* Shared catalogue: managed from the Press dashboard */}
+      <div className="border-y border-slate-200 bg-white text-slate-900">
+        <BookCatalogue />
+      </div>
+
       {/* Footer Note */}
-      <div className="max-w-5xl mx-auto px-4 pb-20">
+      <div className="max-w-5xl mx-auto px-4 py-20">
         <div className="p-8 bg-blue-600 rounded-3xl text-center text-white">
-          <h3 className="text-2xl font-bold mb-2">Can&apos;t find a specific book?</h3>
-          <p className="opacity-90 mb-6">We can help source specific theological works and archives upon request.</p>
+          <h3 className="text-2xl font-bold mb-2">Looking for another title?</h3>
+          <p className="opacity-90 mb-6">Ask about availability or let us help source a specific Bible, theological work or archival publication.</p>
           <a 
             href={WHATSAPP_LINK}
             target="_blank"
