@@ -1,33 +1,40 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { BookOpen, Leaf, Laptop, Printer } from "lucide-react";
 
 const services = [
- { title: "Pioneers Footprints Press", description: "Professional printing, publishing and binding. Browse our books or request a quote for your manuscript.", icon: Printer, color: "bg-blue-900", href: "/press" },
+  {
+    title: "Pioneers Footprints Press",
+    description:
+      "Professional printing, publishing and binding. Browse our books or request a quote for your manuscript.",
+    image: "/assets/press.png",
+    imageAlt: "Pioneers Footprints Press",
+    href: "/press",
+  },
   {
     title: "Publications & Literature",
     description:
       "KJV Bibles, Luo Bibles, Song Books, Kiswahili Biblia, Ellen White writings (The Great Controversy, Desire of Ages, Early Writings), Pioneers Library and archival publications.",
-    icon: BookOpen,
-    color: "bg-blue-600",
+    image: "/assets/books.png",
+    imageAlt: "Books and publications",
     href: "/services/literature",
   },
   {
     title: "Natural Health & Medical Services",
     description:
       "Natural health products, remedies, medical missionary work, and educational support for wellness.",
-    icon: Leaf,
-    color: "bg-green-600",
+    image: "/assets/medical.jpeg",
+    imageAlt: "Natural health and medical services",
     href: "/services/health",
   },
   {
     title: "Software & Media Services",
     description:
       "Web design, development, graphics design, media production, and camera work for all digital solutions.",
-    icon: Laptop,
-    color: "bg-purple-600",
+    image: "/assets/camera.jpg",
+    imageAlt: "Camera for software and media services",
     href: "/services/media",
   },
 ];
@@ -67,31 +74,32 @@ export default function ServicesPage() {
 
 
         <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-8">
-          {services.map(({ title, description, icon: Icon, color, href }, index) => (
+          {services.map(({ title, description, image, imageAlt, href }, index) => (
             <motion.div
               key={title}
-              className="rounded-2xl shadow-xl p-6 flex flex-col gap-4 border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 transition-colors"
+              className="rounded-2xl shadow-xl flex flex-col border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 transition-colors overflow-hidden"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
             >
-              <div
-                className={`w-14 h-14 rounded-full flex items-center justify-center text-white ${color}`}
-              >
-                <Icon className="w-7 h-7" />
+              <Image
+                src={image}
+                alt={imageAlt}
+                width={640}
+                height={360}
+                className="h-48 w-full object-cover"
+              />
+              <div className="flex flex-1 flex-col gap-4 p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+                <p className="text-gray-700 dark:text-gray-300 flex-1 leading-relaxed">{description}</p>
+                <Link
+                  href={href}
+                  className="mt-4 inline-block text-center bg-gradient-to-r from-green-500 to-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+                >
+                  View Service →
+                </Link>
               </div>
-
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
-              <p className="text-gray-700 dark:text-gray-300 flex-1 leading-relaxed">{description}</p>
-
-              {/* CTA Button */}
-              <Link
-                href={href}
-                className="mt-4 inline-block text-center bg-gradient-to-r from-green-500  to-blue-600  text-white py-2 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition"
-              >
-                View Service →
-              </Link>
             </motion.div>
           ))}
         </div>

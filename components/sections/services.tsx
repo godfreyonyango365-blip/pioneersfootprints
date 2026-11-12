@@ -1,33 +1,40 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { BookOpen, Leaf, Laptop, Printer } from "lucide-react";
 
 const services = [
- { title: "Pioneers Footprints Press", description: "Professional printing, publishing and binding. Browse our books or request a quote for your manuscript.", icon: Printer, color: "bg-blue-900", href: "/press" },
+  {
+    title: "Pioneers Footprints Press",
+    description:
+      "Professional printing, publishing and binding. Browse our books or request a quote for your manuscript.",
+    image: "/assets/press.png",
+    imageAlt: "Pioneers Footprints Press",
+    href: "/press",
+  },
   {
     title: "Publications & Literature",
     description:
       "KJV Bibles, Luo Bibles, Song Books, Kiswahili Biblia, Ellen White writings, pioneers library and archival publications.",
-    icon: BookOpen,
-    color: "bg-blue-600",
+    image: "/assets/books.png",
+    imageAlt: "Books and publications",
     href: "/services/literature",
   },
   {
     title: "Natural Health & Medical Services",
     description:
       "Natural health products, remedies, medical missionary work, and educational support for wellness.",
-    icon: Leaf,
-    color: "bg-green-600",
+    image: "/assets/medical.jpeg",
+    imageAlt: "Natural health and medical services",
     href: "/services/health",
   },
   {
     title: "Software & Media Services",
     description:
       "Web and media services for digital outreach, design, development, and content production.",
-    icon: Laptop,
-    color: "bg-purple-600",
+    image: "/assets/camera.jpg",
+    imageAlt: "Camera for software and media services",
     href: "/services/media",
   },
 ];
@@ -47,28 +54,34 @@ export default function ServicesSection() {
         </div>
 
         <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-8">
-          {services.map(({ title, description, icon: Icon, color, href }, index) => (
+          {services.map(({ title, description, image, imageAlt, href }, index) => (
             <motion.div
               key={title}
-              className="rounded-3xl shadow-xl p-8 flex flex-col gap-6 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition-colors"
+              className="rounded-3xl shadow-xl flex flex-col border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition-colors overflow-hidden"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.15 }}
             >
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white ${color}`}>
-                <Icon className="w-7 h-7" />
+              <Image
+                src={image}
+                alt={imageAlt}
+                width={640}
+                height={360}
+                className="h-48 w-full object-cover"
+              />
+              <div className="flex flex-1 flex-col gap-6 p-8">
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">{title}</h3>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{description}</p>
+                </div>
+                <Link
+                  href={href}
+                  className="mt-auto inline-flex items-center justify-center rounded-full bg-blue-600 text-white py-3 px-5 text-sm font-semibold hover:bg-blue-700 transition"
+                >
+                  View Service →
+                </Link>
               </div>
-              <div className="space-y-4">
-                <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">{title}</h3>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{description}</p>
-              </div>
-              <Link
-                href={href}
-                className="mt-auto inline-flex items-center justify-center rounded-full bg-blue-600 text-white py-3 px-5 text-sm font-semibold hover:bg-blue-700 transition"
-              >
-                View Service →
-              </Link>
             </motion.div>
           ))}
         </div>
